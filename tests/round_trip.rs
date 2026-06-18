@@ -6,13 +6,13 @@ use signal_frame::{
 use signal_mentci::{
     AnswerProposal, AnswerProposalAdmitted, AnswerText, ApprovalDecision, ApprovalQuestion,
     ApprovalSource, ApprovalVerdict, ContextBody, ContextLabel, ExplanationText, InterfaceInterest,
-    InterfaceMutation, InterfaceObservationRetracted, InterfaceProjection, InterfaceState,
-    InterfaceStateObservation, MentciEvent, MentciFrame as Frame, MentciFrameBody as FrameBody,
-    MentciReply, MentciRequest, NotificationText, PaneContent, PaneLabel, PendingQuestionsView,
-    ProjectedInterfaceState, PromptText, ProposalDigest, ProposalIdentifier, QuestionContext,
-    QuestionIdentifier, QuestionPresented, QuestionProposal, Rejection, RejectionReason,
-    RevisionCounter, StatusText, SubscriberName, SubscriptionToken, TimestampNanos, UpdateAccepted,
-    UpdateIdentifier,
+    InterfaceMutation, InterfaceObservationOpened, InterfaceObservationRetracted,
+    InterfaceProjection, InterfaceState, InterfaceStateObservation, MentciEvent,
+    MentciFrame as Frame, MentciFrameBody as FrameBody, MentciReply, MentciRequest,
+    NotificationText, PaneContent, PaneLabel, PendingQuestionsView, ProjectedInterfaceState,
+    PromptText, ProposalDigest, ProposalIdentifier, QuestionContext, QuestionIdentifier,
+    QuestionPresented, QuestionProposal, Rejection, RejectionReason, RevisionCounter, StatusText,
+    SubscriberName, SubscriptionToken, TimestampNanos, UpdateAccepted, UpdateIdentifier,
 };
 
 fn exchange() -> ExchangeIdentifier {
@@ -141,7 +141,10 @@ fn reply_variants_round_trip() {
             identifier: UpdateIdentifier::new("update-1"),
             revision: RevisionCounter::new(2),
         }),
-        MentciReply::InterfaceStateSnapshot(projected_state()),
+        MentciReply::InterfaceObservationOpened(InterfaceObservationOpened {
+            token: SubscriptionToken::new("subscription-1"),
+            state: projected_state(),
+        }),
         MentciReply::VerdictAccepted(signal_mentci::VerdictAccepted {
             question: QuestionIdentifier::new("question-1"),
             decision: ApprovalDecision::Reject,

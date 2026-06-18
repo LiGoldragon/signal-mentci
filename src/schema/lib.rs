@@ -284,6 +284,14 @@ pub struct ProjectedInterfaceState {
 }
 
 #[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct InterfaceObservationOpened {
+    pub token: SubscriptionToken,
+    pub state: ProjectedInterfaceState,
+}
+
+#[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum InterfaceProjection {
     FullProjection(InterfaceState),
@@ -540,7 +548,7 @@ pub enum Input {
 pub enum Output {
     QuestionPresented(QuestionPresented),
     UpdateAccepted(UpdateAccepted),
-    InterfaceStateSnapshot(ProjectedInterfaceState),
+    InterfaceObservationOpened(InterfaceObservationOpened),
     VerdictAccepted(VerdictAccepted),
     AnswerProposalAdmitted(AnswerProposalAdmitted),
     InterfaceObservationRetracted(InterfaceObservationRetracted),
@@ -1478,8 +1486,8 @@ impl Output {
     pub fn update_accepted(payload: UpdateAccepted) -> Self {
         Self::UpdateAccepted(payload)
     }
-    pub fn interface_state_snapshot(payload: ProjectedInterfaceState) -> Self {
-        Self::InterfaceStateSnapshot(payload)
+    pub fn interface_observation_opened(payload: InterfaceObservationOpened) -> Self {
+        Self::InterfaceObservationOpened(payload)
     }
     pub fn verdict_accepted(payload: VerdictAccepted) -> Self {
         Self::VerdictAccepted(payload)
@@ -1622,9 +1630,9 @@ impl From<UpdateAccepted> for Output {
 }
 
 #[rustfmt::skip]
-impl From<ProjectedInterfaceState> for Output {
-    fn from(payload: ProjectedInterfaceState) -> Self {
-        Self::InterfaceStateSnapshot(payload)
+impl From<InterfaceObservationOpened> for Output {
+    fn from(payload: InterfaceObservationOpened) -> Self {
+        Self::InterfaceObservationOpened(payload)
     }
 }
 
@@ -1698,7 +1706,7 @@ pub mod short_header {
     pub const INPUT_RETRACT_INTERFACE_OBSERVATION: u64 = 0x0005000000000000;
     pub const OUTPUT_QUESTION_PRESENTED: u64 = 0x0100000000000000;
     pub const OUTPUT_UPDATE_ACCEPTED: u64 = 0x0101000000000000;
-    pub const OUTPUT_INTERFACE_STATE_SNAPSHOT: u64 = 0x0102000000000000;
+    pub const OUTPUT_INTERFACE_OBSERVATION_OPENED: u64 = 0x0102000000000000;
     pub const OUTPUT_VERDICT_ACCEPTED: u64 = 0x0103000000000000;
     pub const OUTPUT_ANSWER_PROPOSAL_ADMITTED: u64 = 0x0104000000000000;
     pub const OUTPUT_INTERFACE_OBSERVATION_RETRACTED: u64 = 0x0105000000000000;
@@ -1776,7 +1784,7 @@ pub enum InputRoute {
 pub enum OutputRoute {
     QuestionPresented,
     UpdateAccepted,
-    InterfaceStateSnapshot,
+    InterfaceObservationOpened,
     VerdictAccepted,
     AnswerProposalAdmitted,
     InterfaceObservationRetracted,
@@ -1875,7 +1883,9 @@ impl Output {
         match self {
             Self::QuestionPresented(_) => OutputRoute::QuestionPresented,
             Self::UpdateAccepted(_) => OutputRoute::UpdateAccepted,
-            Self::InterfaceStateSnapshot(_) => OutputRoute::InterfaceStateSnapshot,
+            Self::InterfaceObservationOpened(_) => {
+                OutputRoute::InterfaceObservationOpened
+            }
             Self::VerdictAccepted(_) => OutputRoute::VerdictAccepted,
             Self::AnswerProposalAdmitted(_) => OutputRoute::AnswerProposalAdmitted,
             Self::InterfaceObservationRetracted(_) => {
@@ -1888,8 +1898,8 @@ impl Output {
         match self {
             Self::QuestionPresented(_) => short_header::OUTPUT_QUESTION_PRESENTED,
             Self::UpdateAccepted(_) => short_header::OUTPUT_UPDATE_ACCEPTED,
-            Self::InterfaceStateSnapshot(_) => {
-                short_header::OUTPUT_INTERFACE_STATE_SNAPSHOT
+            Self::InterfaceObservationOpened(_) => {
+                short_header::OUTPUT_INTERFACE_OBSERVATION_OPENED
             }
             Self::VerdictAccepted(_) => short_header::OUTPUT_VERDICT_ACCEPTED,
             Self::AnswerProposalAdmitted(_) => {
@@ -1907,8 +1917,8 @@ impl Output {
         match header {
             short_header::OUTPUT_QUESTION_PRESENTED => Ok(OutputRoute::QuestionPresented),
             short_header::OUTPUT_UPDATE_ACCEPTED => Ok(OutputRoute::UpdateAccepted),
-            short_header::OUTPUT_INTERFACE_STATE_SNAPSHOT => {
-                Ok(OutputRoute::InterfaceStateSnapshot)
+            short_header::OUTPUT_INTERFACE_OBSERVATION_OPENED => {
+                Ok(OutputRoute::InterfaceObservationOpened)
             }
             short_header::OUTPUT_VERDICT_ACCEPTED => Ok(OutputRoute::VerdictAccepted),
             short_header::OUTPUT_ANSWER_PROPOSAL_ADMITTED => {

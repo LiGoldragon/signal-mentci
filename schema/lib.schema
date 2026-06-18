@@ -74,7 +74,7 @@
 
 [(QuestionPresented QuestionPresented)
  (UpdateAccepted UpdateAccepted)
- (InterfaceStateSnapshot ProjectedInterfaceState)
+ (InterfaceObservationOpened InterfaceObservationOpened)
  (VerdictAccepted VerdictAccepted)
  (AnswerProposalAdmitted AnswerProposalAdmitted)
  (InterfaceObservationRetracted InterfaceObservationRetracted)
@@ -279,6 +279,14 @@
   ProjectedInterfaceState {
     revision.RevisionCounter
     projection.InterfaceProjection
+  }
+
+  ;; ObserveInterfaceState opens a subscription stream. The daemon mints the
+  ;; token and returns it with the first projected state so the client can later
+  ;; retract the observation.
+  InterfaceObservationOpened {
+    token.SubscriptionToken
+    state.ProjectedInterfaceState
   }
 
   InterfaceProjection [
