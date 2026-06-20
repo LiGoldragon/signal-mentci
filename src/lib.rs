@@ -102,10 +102,63 @@ impl InterfaceState {
             pending_questions: PendingQuestions::new(pending_questions),
         }
     }
+
+    /// The current notification, if one is posted. Reader for the
+    /// `pub(crate)`-wrapped field so consumers (mentci-lib's shared
+    /// observability model) can project state they did not build.
+    pub fn notification(&self) -> Option<&NotificationText> {
+        self.notification.payload().as_ref()
+    }
+
+    /// The open panes.
+    pub fn panes(&self) -> &[PaneContent] {
+        self.panes.payload().as_slice()
+    }
+
+    /// The pending approval questions in this canonical state.
+    pub fn pending_questions(&self) -> &[ApprovalQuestion] {
+        self.pending_questions.payload().as_slice()
+    }
 }
 
 impl PendingQuestionsView {
     pub fn from_questions(questions: Vec<ApprovalQuestion>) -> Self {
         Self::new(VisibleQuestions::new(questions))
+    }
+
+    /// The questions a `PendingQuestions`-interest subscriber is allowed to
+    /// see. Reader for the `pub(crate)`-wrapped inner.
+    pub fn questions(&self) -> &[ApprovalQuestion] {
+        self.payload().payload().as_slice()
+    }
+}
+
+impl ProjectedInterfaceState {
+    /// Extract the pending approval questions visible in this projection,
+    /// whatever the interest. A `FullProjection` reads the canonical state's
+    /// queue; a `PendingQuestionsProjection` reads its visible slice; the
+    /// status / notification projections carry no questions. This is the one
+    /// reader the shared observability model needs to drive the approval
+    /// cursor regardless of which interest opened the stream.
+    pub fn pending_questions(&self) -> &[ApprovalQuestion] {
+        match &self.projection {
+            InterfaceProjection::FullProjection(state) => state.pending_questions(),
+            InterfaceProjection::PendingQuestionsProjection(view) => view.questions(),
+            InterfaceProjection::StatusProjection(_)
+            | InterfaceProjection::NotificationProjection(_) => &[],
+        }
+    }
+}
+
+impl QuestionProposal {
+    /// The suggested answer, if the asking agent supplied one. Reader for the
+    /// `pub(crate)`-wrapped field.
+    pub fn suggested_answer(&self) -> Option<&AnswerText> {
+        self.suggested_answer.payload().as_ref()
+    }
+
+    /// The context entries attached to this question.
+    pub fn context(&self) -> &[QuestionContext] {
+        self.context.payload().as_slice()
     }
 }
