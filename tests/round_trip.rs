@@ -6,7 +6,7 @@ use signal_frame::{
 use signal_mentci::{
     AnswerProposal, AnswerProposalAdmitted, AnswerText, ApprovalDecision, ApprovalQuestion,
     ApprovalSource, ApprovalVerdict, AuthorizationRequestSlot, ContextBody, ContextLabel,
-    ExplanationText, InterfaceInterest,
+    CriomeAccess, ExplanationText, InterfaceInterest,
     InterfaceMutation, InterfaceObservationOpened, InterfaceObservationRetracted,
     InterfaceProjection, InterfaceState, InterfaceStateObservation, MentciEvent,
     MentciFrame as Frame, MentciFrameBody as FrameBody, MentciReply, MentciRequest,
@@ -204,6 +204,7 @@ fn projected_state_can_hide_full_question_context() {
                 body: ContextBody::new("question-context"),
             }],
             vec![approval_question()],
+            CriomeAccess::ReadWrite,
         )),
     };
     assert_nota_round_trips(&full_projection);

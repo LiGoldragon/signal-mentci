@@ -172,6 +172,23 @@ pub enum ApprovalDecision {
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
+pub enum CriomeAccess {
+    ReadOnly,
+    ReadWrite,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ApprovalVerdict {
     pub question: QuestionIdentifier,
@@ -240,6 +257,7 @@ pub struct InterfaceState {
     pub(crate) notification: Notification,
     pub(crate) panes: Panes,
     pub(crate) pending_questions: PendingQuestions,
+    pub criome_access: CriomeAccess,
 }
 
 #[rustfmt::skip]

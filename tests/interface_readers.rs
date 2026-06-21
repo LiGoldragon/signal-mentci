@@ -1,5 +1,5 @@
 use signal_mentci::{
-    AnswerText, ApprovalQuestion, ApprovalSource, AuthorizationRequestSlot, ContextBody, ContextLabel, ExplanationText,
+    AnswerText, ApprovalQuestion, ApprovalSource, AuthorizationRequestSlot, ContextBody, ContextLabel, CriomeAccess, ExplanationText,
     InterfaceProjection, InterfaceState, NotificationText, PaneContent, PaneLabel,
     PendingQuestionsView, ProjectedInterfaceState, PromptText, QuestionContext, QuestionIdentifier,
     QuestionProposal, RevisionCounter, StatusText,
@@ -37,6 +37,7 @@ fn interface_state_readers_expose_wrapped_fields() {
             body: ContextBody::new("question-context"),
         }],
         vec![question.clone()],
+        CriomeAccess::ReadWrite,
     );
 
     assert_eq!(
@@ -65,6 +66,7 @@ fn pending_question_projection_reader_matches_full_projection_reader() {
             None,
             vec![],
             vec![question.clone()],
+            CriomeAccess::ReadWrite,
         )),
     };
 
