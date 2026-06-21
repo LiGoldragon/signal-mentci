@@ -183,6 +183,19 @@
   ]
 
   ;; -------------------------------------------------------------------
+  ;; CriomeAccess — the daemon's access level to its criome connection,
+  ;; MIRRORED into the canonical state so a client renders the matching
+  ;; surface. A read-only daemon (no criome meta write access) projects
+  ;; ReadOnly: clients observe parked questions but show no answer
+  ;; controls. A write daemon projects ReadWrite: clients can answer; the
+  ;; daemon routes the verdict to criome by the parked slot (daemon-routing).
+  ;; -------------------------------------------------------------------
+  CriomeAccess [
+    ReadOnly
+    ReadWrite
+  ]
+
+  ;; -------------------------------------------------------------------
   ;; ApprovalVerdict — the AnswerQuestion payload: which question, the
   ;; closed decision, and who answered (the subscriber acting as the psyche
   ;; surface).
@@ -249,6 +262,7 @@
     (Notification (Optional NotificationText))
     (Panes (Vector PaneContent))
     (PendingQuestions (Vector ApprovalQuestion))
+    CriomeAccess
   }
 
   ;; -------------------------------------------------------------------

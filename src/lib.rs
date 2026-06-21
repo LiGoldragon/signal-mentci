@@ -93,6 +93,7 @@ impl InterfaceState {
         notification: Option<NotificationText>,
         panes: Vec<PaneContent>,
         pending_questions: Vec<ApprovalQuestion>,
+        criome_access: CriomeAccess,
     ) -> Self {
         Self {
             revision,
@@ -100,6 +101,7 @@ impl InterfaceState {
             notification: Notification::new(notification),
             panes: Panes::new(panes),
             pending_questions: PendingQuestions::new(pending_questions),
+            criome_access,
         }
     }
 
@@ -118,6 +120,12 @@ impl InterfaceState {
     /// The pending approval questions in this canonical state.
     pub fn pending_questions(&self) -> &[ApprovalQuestion] {
         self.pending_questions.payload().as_slice()
+    }
+
+    /// The daemon's criome access level, mirrored into canonical state so a
+    /// client renders read-only or read-write controls.
+    pub fn criome_access(&self) -> CriomeAccess {
+        self.criome_access
     }
 }
 
@@ -146,6 +154,20 @@ impl ProjectedInterfaceState {
             InterfaceProjection::PendingQuestionsProjection(view) => view.questions(),
             InterfaceProjection::StatusProjection(_)
             | InterfaceProjection::NotificationProjection(_) => &[],
+        }
+    }
+
+    /// The mirrored criome access level visible in this projection. Only a
+    /// `FullProjection` carries the canonical `InterfaceState` and thus the
+    /// mode; the status / notification / pending-questions slices do not, so a
+    /// client on a narrow interest learns no mode (`None`) and defaults to
+    /// observation-only.
+    pub fn criome_access(&self) -> Option<CriomeAccess> {
+        match &self.projection {
+            InterfaceProjection::FullProjection(state) => Some(state.criome_access()),
+            InterfaceProjection::StatusProjection(_)
+            | InterfaceProjection::NotificationProjection(_)
+            | InterfaceProjection::PendingQuestionsProjection(_) => None,
         }
     }
 }

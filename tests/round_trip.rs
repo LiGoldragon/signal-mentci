@@ -6,14 +6,14 @@ use signal_frame::{
 use signal_mentci::{
     AnswerProposal, AnswerProposalAdmitted, AnswerText, ApprovalDecision, ApprovalQuestion,
     ApprovalSource, ApprovalVerdict, AuthorizationRequestSlot, ContextBody, ContextLabel,
-    ExplanationText, InterfaceInterest,
-    InterfaceMutation, InterfaceObservationOpened, InterfaceObservationRetracted,
-    InterfaceProjection, InterfaceState, InterfaceStateObservation, MentciEvent,
-    MentciFrame as Frame, MentciFrameBody as FrameBody, MentciReply, MentciRequest,
-    NotificationText, PaneContent, PaneLabel, PendingQuestionsView, ProjectedInterfaceState,
-    PromptText, ProposalDigest, ProposalIdentifier, QuestionContext, QuestionIdentifier,
-    QuestionPresented, QuestionProposal, Rejection, RejectionReason, RevisionCounter, StatusText,
-    SubscriberName, SubscriptionToken, TimestampNanos, UpdateAccepted, UpdateIdentifier,
+    CriomeAccess, ExplanationText, InterfaceInterest, InterfaceMutation,
+    InterfaceObservationOpened, InterfaceObservationRetracted, InterfaceProjection, InterfaceState,
+    InterfaceStateObservation, MentciEvent, MentciFrame as Frame, MentciFrameBody as FrameBody,
+    MentciReply, MentciRequest, NotificationText, PaneContent, PaneLabel, PendingQuestionsView,
+    ProjectedInterfaceState, PromptText, ProposalDigest, ProposalIdentifier, QuestionContext,
+    QuestionIdentifier, QuestionPresented, QuestionProposal, Rejection, RejectionReason,
+    RevisionCounter, StatusText, SubscriberName, SubscriptionToken, TimestampNanos, UpdateAccepted,
+    UpdateIdentifier,
 };
 
 fn exchange() -> ExchangeIdentifier {
@@ -204,6 +204,7 @@ fn projected_state_can_hide_full_question_context() {
                 body: ContextBody::new("question-context"),
             }],
             vec![approval_question()],
+            CriomeAccess::ReadWrite,
         )),
     };
     assert_nota_round_trips(&full_projection);
@@ -215,7 +216,10 @@ fn criome_escalation_source_carries_the_slot() {
     // client answering it routes the verdict back to criome by that slot.
     let proposal = question_proposal();
     assert_eq!(
-        proposal.source.criome_slot().map(AuthorizationRequestSlot::as_str),
+        proposal
+            .source
+            .criome_slot()
+            .map(AuthorizationRequestSlot::as_str),
         Some("slot-1"),
     );
 
@@ -224,7 +228,10 @@ fn criome_escalation_source_carries_the_slot() {
         .parse()
         .expect("decode proposal");
     assert_eq!(
-        recovered.source.criome_slot().map(AuthorizationRequestSlot::as_str),
+        recovered
+            .source
+            .criome_slot()
+            .map(AuthorizationRequestSlot::as_str),
         Some("slot-1"),
     );
 
