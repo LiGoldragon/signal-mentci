@@ -5,7 +5,8 @@ use signal_frame::{
 };
 use signal_mentci::{
     AnswerProposal, AnswerProposalAdmitted, AnswerText, ApprovalDecision, ApprovalQuestion,
-    ApprovalSource, ApprovalVerdict, ContextBody, ContextLabel, ExplanationText, InterfaceInterest,
+    ApprovalSource, ApprovalVerdict, AuthorizationRequestSlot, ContextBody, ContextLabel,
+    ExplanationText, InterfaceInterest,
     InterfaceMutation, InterfaceObservationOpened, InterfaceObservationRetracted,
     InterfaceProjection, InterfaceState, InterfaceStateObservation, MentciEvent,
     MentciFrame as Frame, MentciFrameBody as FrameBody, MentciReply, MentciRequest,
@@ -25,7 +26,7 @@ fn exchange() -> ExchangeIdentifier {
 
 fn question_proposal() -> QuestionProposal {
     QuestionProposal::new(
-        ApprovalSource::CriomeEscalation,
+        ApprovalSource::CriomeEscalation(AuthorizationRequestSlot::new("slot-1")),
         PromptText::new("approve-spirit-record"),
         Some(AnswerText::new("approve")),
         ExplanationText::new("agent-proposed-answer"),
@@ -206,4 +207,34 @@ fn projected_state_can_hide_full_question_context() {
         )),
     };
     assert_nota_round_trips(&full_projection);
+}
+
+#[test]
+fn criome_escalation_source_carries_the_slot() {
+    // The seam: a criome-sourced question keeps its parked slot, typed, so a
+    // client answering it routes the verdict back to criome by that slot.
+    let proposal = question_proposal();
+    assert_eq!(
+        proposal.source.criome_slot().map(AuthorizationRequestSlot::as_str),
+        Some("slot-1"),
+    );
+
+    // The slot survives the NOTA round trip.
+    let recovered: QuestionProposal = NotaSource::new(&proposal.to_nota())
+        .parse()
+        .expect("decode proposal");
+    assert_eq!(
+        recovered.source.criome_slot().map(AuthorizationRequestSlot::as_str),
+        Some("slot-1"),
+    );
+
+    // Non-criome sources carry no slot.
+    let agent = QuestionProposal::new(
+        ApprovalSource::AgentQuestion,
+        PromptText::new("ask"),
+        None,
+        ExplanationText::new("local"),
+        vec![],
+    );
+    assert!(agent.source.criome_slot().is_none());
 }

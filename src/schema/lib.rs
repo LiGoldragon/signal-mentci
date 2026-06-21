@@ -10,6 +10,9 @@ pub type Boolean = bool;
 pub type Path = std::string::String;
 
 #[rustfmt::skip]
+pub use signal_criome::schema::lib::AuthorizationRequestSlot as AuthorizationRequestSlot;
+
+#[rustfmt::skip]
 #[cfg(feature = "nota-text")]
 pub use nota_next::{NotaDecodeError, NotaEncode, NotaSource};
 
@@ -105,18 +108,9 @@ pub struct SocketPath(Path);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
-#[derive(
-    rkyv::Archive,
-    rkyv::Serialize,
-    rkyv::Deserialize,
-    Clone,
-    Copy,
-    Debug,
-    PartialEq,
-    Eq,
-)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum ApprovalSource {
-    CriomeEscalation,
+    CriomeEscalation(AuthorizationRequestSlot),
     AgentQuestion,
     LocalSystemPrompt,
 }
@@ -1088,6 +1082,13 @@ impl From<RejectionReason> for Rejection {
 }
 
 #[rustfmt::skip]
+impl ApprovalSource {
+    pub fn criome_escalation(payload: AuthorizationRequestSlot) -> Self {
+        Self::CriomeEscalation(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl InterfaceMutation {
     pub fn set_status(payload: String) -> Self {
         Self::SetStatus(StatusText::new(payload))
@@ -1176,6 +1177,13 @@ impl Output {
     }
     pub fn rejection(payload: RejectionReason) -> Self {
         Self::Rejection(Rejection::new(payload))
+    }
+}
+
+#[rustfmt::skip]
+impl From<AuthorizationRequestSlot> for ApprovalSource {
+    fn from(payload: AuthorizationRequestSlot) -> Self {
+        Self::CriomeEscalation(payload)
     }
 }
 

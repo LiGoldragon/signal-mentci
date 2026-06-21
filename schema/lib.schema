@@ -47,14 +47,13 @@
 ;; separate ProposeEditedAnswer request carrying a typed AnswerProposal that
 ;; re-enters the normal authorization path as a new admitted object.
 ;;
-;; CROSS-IMPORT DEFERRED (Woe 4): the criome ApprovalSource origin and the
-;; standard socket connection-point (Spirit eaf7) would ideally import from
-;; signal-criome / signal-standard. signal-criome is still on the stale
-;; dot-field notation and will not lower under current main's positional
-;; grammar; signal-standard is not yet created as a crate. Until both migrate,
-;; signal-mentci declares its own equivalent local types and the cross-import
-;; is deferred. Local types marked  ;; (cross-import target: …)  identify the
-;; eventual import source.
+;; CROSS-IMPORT (Woe 4): the criome ApprovalSource origin now imports
+;; AuthorizationRequestSlot from signal-criome via the single-colon path
+;; form (signal-criome:lib:AuthorizationRequestSlot) — signal-criome lowers
+;; cleanly under current main, so the grammar blocker named here before is
+;; gone. The standard socket connection-point (Spirit eaf7) still declares a
+;; local stand-in marked  ;; (cross-import target: signal-standard)  pending
+;; that crate's cross-import.
 ;;
 ;; GRAMMAR (current schema-next main, past abae95f). The positional
 ;; struct-field grammar uses explicit field roles: a field whose name differs
@@ -64,6 +63,17 @@
 ;; composite / optional field carries its role as a Type-cased head,
 ;; (FieldRole (Vector X)) / (FieldRole (Optional X)), whose snake-case becomes
 ;; the field name. The retired two-atom  field Type  pair no longer lowers.
+
+;; -------------------------------------------------------------------
+;; Cross-import from signal-criome (single-colon path form). The parked
+;; criome authorization slot is one shared type identity across the
+;; approval surface; ApprovalSource::CriomeEscalation carries it so a closed
+;; verdict keys straight back to criome by that slot, with no stringly
+;; round-trip (Spirit 7x5z / t00s). Mirrors meta-signal-criome's import.
+;; -------------------------------------------------------------------
+{
+  AuthorizationRequestSlot signal-criome:lib:AuthorizationRequestSlot
+}
 
 [(PresentQuestion QuestionProposal)
  (PushUpdate InterfaceUpdate)
@@ -106,12 +116,13 @@
 
   ;; -------------------------------------------------------------------
   ;; ApprovalSource — where a pending question originates. The criome
-  ;; EscalateToPsyche escalation is the motivating case (Spirit gc0n).
-  ;; (cross-import target: signal-criome — the criome escalation origin;
-  ;;  deferred while signal-criome remains on stale dot notation.)
+  ;; EscalateToPsyche escalation is the motivating case (Spirit gc0n); its
+  ;; CriomeEscalation variant carries the parked criome AuthorizationRequestSlot
+  ;; (imported from signal-criome) so the closed verdict routes straight back
+  ;; to criome by that slot — no daemon-private side table, no stringly key.
   ;; -------------------------------------------------------------------
   ApprovalSource [
-    CriomeEscalation
+    (CriomeEscalation AuthorizationRequestSlot)
     AgentQuestion
     LocalSystemPrompt
   ]

@@ -162,3 +162,18 @@ impl QuestionProposal {
         self.context.payload().as_slice()
     }
 }
+
+impl ApprovalSource {
+    /// The parked criome authorization slot, when this question originated from
+    /// a criome `EscalateToPsyche` escalation. A closed verdict on such a
+    /// question keys straight back to criome by this slot (the shared
+    /// `signal-criome` identity, no stringly round-trip); other sources have
+    /// none. The shared client model reads this to decide whether an answered
+    /// question routes to criome or to the mentci socket.
+    pub fn criome_slot(&self) -> Option<&AuthorizationRequestSlot> {
+        match self {
+            ApprovalSource::CriomeEscalation(slot) => Some(slot),
+            ApprovalSource::AgentQuestion | ApprovalSource::LocalSystemPrompt => None,
+        }
+    }
+}

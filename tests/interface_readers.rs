@@ -1,5 +1,5 @@
 use signal_mentci::{
-    AnswerText, ApprovalQuestion, ApprovalSource, ContextBody, ContextLabel, ExplanationText,
+    AnswerText, ApprovalQuestion, ApprovalSource, AuthorizationRequestSlot, ContextBody, ContextLabel, ExplanationText,
     InterfaceProjection, InterfaceState, NotificationText, PaneContent, PaneLabel,
     PendingQuestionsView, ProjectedInterfaceState, PromptText, QuestionContext, QuestionIdentifier,
     QuestionProposal, RevisionCounter, StatusText,
@@ -7,7 +7,7 @@ use signal_mentci::{
 
 fn question_proposal() -> QuestionProposal {
     QuestionProposal::new(
-        ApprovalSource::CriomeEscalation,
+        ApprovalSource::CriomeEscalation(AuthorizationRequestSlot::new("slot-1")),
         PromptText::new("approve-spirit-record"),
         Some(AnswerText::new("approve")),
         ExplanationText::new("agent-proposed-answer"),
