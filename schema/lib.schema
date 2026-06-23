@@ -148,9 +148,9 @@
   QuestionProposal {
     source.ApprovalSource
     prompt.PromptText
-    (SuggestedAnswer (Optional AnswerText))
+    SuggestedAnswer.(Optional AnswerText)
     explanation.ExplanationText
-    (Context (Vector QuestionContext))
+    Context.(Vector QuestionContext)
   }
 
   ;; -------------------------------------------------------------------
@@ -259,9 +259,9 @@
   InterfaceState {
     revision.RevisionCounter
     status.StatusText
-    (Notification (Optional NotificationText))
-    (Panes (Vector PaneContent))
-    (PendingQuestions (Vector ApprovalQuestion))
+    Notification.(Optional NotificationText)
+    Panes.(Vector PaneContent)
+    PendingQuestions.(Vector ApprovalQuestion)
     CriomeAccess
   }
 
@@ -322,7 +322,7 @@
   ]
 
   PendingQuestionsView {
-    (VisibleQuestions (Vector ApprovalQuestion))
+    VisibleQuestions.(Vector ApprovalQuestion)
   }
 
   ;; -------------------------------------------------------------------
@@ -399,5 +399,5 @@
     (InterfaceStateChanged ProjectedInterfaceState belongs InterfaceStateStream)
   ]
 
-  InterfaceStateStream (Stream { token SubscriptionToken opened ProjectedInterfaceState event MentciEvent close SubscriptionToken })
+  InterfaceStateStream (Stream { token.SubscriptionToken opened.ProjectedInterfaceState event.MentciEvent close.SubscriptionToken })
 }
