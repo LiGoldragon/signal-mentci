@@ -21,10 +21,10 @@ required-features = ["nota-text"]
 
 [features]
 default = []
-nota-text = ["dep:nota-next", "signal-criome/nota-text", "signal-frame/nota-text"]
+nota-text = ["dep:nota", "signal-criome/nota-text", "signal-frame/nota-text"]
 
 [dependencies]
-nota-next    = { package = "nota", git = "https://github.com/LiGoldragon/nota-next.git", branch = "main", optional = true }
+nota         = { package = "nota", git = "https://github.com/LiGoldragon/nota-next.git", branch = "main", optional = true }
 rkyv         = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
 signal-criome = { git = "https://github.com/LiGoldragon/signal-criome.git", branch = "main" }
 signal-frame = { git = "https://github.com/LiGoldragon/signal-frame.git", branch = "main", default-features = false }
