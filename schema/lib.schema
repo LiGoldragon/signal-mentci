@@ -73,6 +73,16 @@
 ;; -------------------------------------------------------------------
 {
   AuthorizationRequestSlot signal-criome:lib:AuthorizationRequestSlot
+  ParkedRequestIdentifier signal-criome:lib:ParkedRequestIdentifier
+  InterceptPolicyIdentifier signal-criome:lib:InterceptPolicyIdentifier
+  InterceptPolicyProposal signal-criome:lib:InterceptPolicyProposal
+  InterceptPolicyCancellation signal-criome:lib:InterceptPolicyCancellation
+  InterceptPolicy signal-criome:lib:InterceptPolicy
+  ActiveInterceptPolicies signal-criome:lib:ActiveInterceptPolicies
+  ParkedRequestQuery signal-criome:lib:ParkedRequestQuery
+  ParkedRequestSnapshot signal-criome:lib:ParkedRequestSnapshot
+  ParkedRequestAnswer signal-criome:lib:ParkedRequestAnswer
+  ParkedRequestResolution signal-criome:lib:ParkedRequestResolution
 }
 
 [(PresentQuestion QuestionProposal)
@@ -80,6 +90,12 @@
  (ObserveInterfaceState InterfaceStateObservation opens InterfaceStateStream)
  (AnswerQuestion ApprovalVerdict)
  (ProposeEditedAnswer AnswerProposal)
+ (CreateInterceptPolicy InterceptPolicyProposal)
+ (ReplaceInterceptPolicy InterceptPolicyProposal)
+ (CancelInterceptPolicy InterceptPolicyCancellation)
+ (ListInterceptPolicies InterceptPolicyObservation)
+ (FetchParkedRequests ParkedRequestQuery)
+ (AnswerParkedRequest ParkedRequestAnswer)
  (RetractInterfaceObservation SubscriptionToken)]
 
 [(QuestionPresented QuestionPresented)
@@ -87,6 +103,12 @@
  (InterfaceObservationOpened InterfaceObservationOpened)
  (VerdictAccepted VerdictAccepted)
  (AnswerProposalAdmitted AnswerProposalAdmitted)
+ (InterceptPolicyCreated InterceptPolicy)
+ (InterceptPolicyReplaced InterceptPolicy)
+ (InterceptPolicyCancelled InterceptPolicyIdentifier)
+ (InterceptPoliciesListed ActiveInterceptPolicies)
+ (ParkedRequestsFetched ParkedRequestSnapshot)
+ (ParkedRequestAnswered ParkedRequestResolution)
  (InterfaceObservationRetracted InterfaceObservationRetracted)
  (Rejection Rejection)]
 
@@ -123,6 +145,7 @@
   ;; -------------------------------------------------------------------
   ApprovalSource [
     (CriomeEscalation AuthorizationRequestSlot)
+    (CriomeInterception ParkedRequestIdentifier)
     AgentQuestion
     LocalSystemPrompt
   ]
@@ -223,6 +246,8 @@
     body.AnswerText
     authored_by.SubscriberName
   }
+
+  InterceptPolicyObservation { }
 
   ;; -------------------------------------------------------------------
   ;; InterfaceUpdate — a programmable mutation pushed into the daemon's

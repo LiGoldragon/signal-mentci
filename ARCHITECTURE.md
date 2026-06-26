@@ -11,6 +11,10 @@ and a `signal-frame` request/reply/stream envelope.
   answer, criome-sourced or not.
 - `QuestionProposal`, `ApprovalQuestion`, `ApprovalVerdict`, `ApprovalDecision`,
   `ApprovalSource`, and `AnswerProposal`.
+- Intercept-policy control requests that thin Mentci clients send to the
+  Mentci daemon for forwarding to criome's meta socket:
+  `CreateInterceptPolicy`, `ReplaceInterceptPolicy`, `CancelInterceptPolicy`,
+  `ListInterceptPolicies`, `FetchParkedRequests`, and `AnswerParkedRequest`.
 - `InterfaceState`, `ProjectedInterfaceState`, `InterfaceInterest`, and the
   interface-state subscription.
 - Daemon-minted identity records such as `QuestionIdentifier`,
@@ -24,6 +28,10 @@ and a `signal-frame` request/reply/stream envelope.
   the type. This is the seam the daemon routes verdicts on — a client emits
   `AnswerQuestion` and the daemon delivers the verdict to criome by the parked
   slot, so the client never opens a criome socket.
+- Intercept policy and parked Spirit request records are imported from
+  `signal-criome`. Mentci owns only the client-facing control roots and UI
+  placement; criome owns policy state, target keys, parked request identity, and
+  answer audit records.
 
 ## Not Owned
 
@@ -46,6 +54,9 @@ and a `signal-frame` request/reply/stream envelope.
 - A criome-sourced question carries its `AuthorizationRequestSlot` in
   `ApprovalSource::CriomeEscalation`; that slot is the daemon's routing key,
   never a client's.
+- A criome-intercepted Spirit operation carries its `ParkedRequestIdentifier`
+  in `ApprovalSource::CriomeInterception`; the raw operation payload itself
+  remains in the imported `ParkedSpiritRequest`/question context for rendering.
 - `InterfaceState` carries the daemon's criome access mode as
   `criome_access: CriomeAccess` (`CriomeAccess [ReadOnly ReadWrite]`); clients
   read it through `ProjectedInterfaceState::criome_access` and present answer

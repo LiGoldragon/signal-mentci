@@ -593,8 +593,8 @@ checksum = "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba"
 
 [[package]]
 name = "signal-criome"
-version = "0.3.0"
-source = "git+https://github.com/LiGoldragon/signal-criome.git?branch=main#182036acc4e763b9ef6c763082f6c277785f86b3"
+version = "0.4.0"
+source = "git+https://github.com/LiGoldragon/signal-criome.git?branch=main#cb9d72f6f9a511ca6f5d540ea6ba5a881f5d0ac1"
 dependencies = [
  "blake3",
  "blst",
@@ -629,7 +629,7 @@ dependencies = [
 
 [[package]]
 name = "signal-mentci"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "nota",
  "rkyv",

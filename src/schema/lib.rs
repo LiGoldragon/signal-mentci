@@ -11,6 +11,26 @@ pub type Path = std::string::String;
 
 #[rustfmt::skip]
 pub use signal_criome::schema::lib::AuthorizationRequestSlot as AuthorizationRequestSlot;
+#[rustfmt::skip]
+pub use signal_criome::schema::lib::ParkedRequestIdentifier as ParkedRequestIdentifier;
+#[rustfmt::skip]
+pub use signal_criome::schema::lib::InterceptPolicyIdentifier as InterceptPolicyIdentifier;
+#[rustfmt::skip]
+pub use signal_criome::schema::lib::InterceptPolicyProposal as InterceptPolicyProposal;
+#[rustfmt::skip]
+pub use signal_criome::schema::lib::InterceptPolicyCancellation as InterceptPolicyCancellation;
+#[rustfmt::skip]
+pub use signal_criome::schema::lib::InterceptPolicy as InterceptPolicy;
+#[rustfmt::skip]
+pub use signal_criome::schema::lib::ActiveInterceptPolicies as ActiveInterceptPolicies;
+#[rustfmt::skip]
+pub use signal_criome::schema::lib::ParkedRequestQuery as ParkedRequestQuery;
+#[rustfmt::skip]
+pub use signal_criome::schema::lib::ParkedRequestSnapshot as ParkedRequestSnapshot;
+#[rustfmt::skip]
+pub use signal_criome::schema::lib::ParkedRequestAnswer as ParkedRequestAnswer;
+#[rustfmt::skip]
+pub use signal_criome::schema::lib::ParkedRequestResolution as ParkedRequestResolution;
 
 #[rustfmt::skip]
 #[cfg(feature = "nota-text")]
@@ -168,6 +188,7 @@ pub struct SocketPath(Path);
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum ApprovalSource {
     CriomeEscalation(AuthorizationRequestSlot),
+    CriomeInterception(ParkedRequestIdentifier),
     AgentQuestion,
     LocalSystemPrompt,
 }
@@ -288,6 +309,14 @@ pub struct AnswerProposal {
     pub body: AnswerText,
     pub authored_by: SubscriberName,
 }
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct InterceptPolicyObservation {}
 
 #[rustfmt::skip]
 #[cfg_attr(
@@ -835,6 +864,12 @@ pub enum Input {
     ObserveInterfaceState(InterfaceStateObservation),
     AnswerQuestion(ApprovalVerdict),
     ProposeEditedAnswer(AnswerProposal),
+    CreateInterceptPolicy(InterceptPolicyProposal),
+    ReplaceInterceptPolicy(InterceptPolicyProposal),
+    CancelInterceptPolicy(InterceptPolicyCancellation),
+    ListInterceptPolicies(InterceptPolicyObservation),
+    FetchParkedRequests(ParkedRequestQuery),
+    AnswerParkedRequest(ParkedRequestAnswer),
     RetractInterfaceObservation(SubscriptionToken),
 }
 
@@ -850,6 +885,12 @@ pub enum Output {
     InterfaceObservationOpened(InterfaceObservationOpened),
     VerdictAccepted(VerdictAccepted),
     AnswerProposalAdmitted(AnswerProposalAdmitted),
+    InterceptPolicyCreated(InterceptPolicy),
+    InterceptPolicyReplaced(InterceptPolicy),
+    InterceptPolicyCancelled(InterceptPolicyIdentifier),
+    InterceptPoliciesListed(ActiveInterceptPolicies),
+    ParkedRequestsFetched(ParkedRequestSnapshot),
+    ParkedRequestAnswered(ParkedRequestResolution),
     InterfaceObservationRetracted(InterfaceObservationRetracted),
     Rejection(Rejection),
 }
@@ -1391,6 +1432,9 @@ impl ApprovalSource {
     pub fn criome_escalation(payload: AuthorizationRequestSlot) -> Self {
         Self::CriomeEscalation(payload)
     }
+    pub fn criome_interception(payload: ParkedRequestIdentifier) -> Self {
+        Self::CriomeInterception(payload)
+    }
 }
 
 #[rustfmt::skip]
@@ -1455,6 +1499,24 @@ impl Input {
     pub fn propose_edited_answer(payload: AnswerProposal) -> Self {
         Self::ProposeEditedAnswer(payload)
     }
+    pub fn create_intercept_policy(payload: InterceptPolicyProposal) -> Self {
+        Self::CreateInterceptPolicy(payload)
+    }
+    pub fn replace_intercept_policy(payload: InterceptPolicyProposal) -> Self {
+        Self::ReplaceInterceptPolicy(payload)
+    }
+    pub fn cancel_intercept_policy(payload: InterceptPolicyCancellation) -> Self {
+        Self::CancelInterceptPolicy(payload)
+    }
+    pub fn list_intercept_policies(payload: InterceptPolicyObservation) -> Self {
+        Self::ListInterceptPolicies(payload)
+    }
+    pub fn fetch_parked_requests(payload: ParkedRequestQuery) -> Self {
+        Self::FetchParkedRequests(payload)
+    }
+    pub fn answer_parked_request(payload: ParkedRequestAnswer) -> Self {
+        Self::AnswerParkedRequest(payload)
+    }
     pub fn retract_interface_observation(payload: String) -> Self {
         Self::RetractInterfaceObservation(SubscriptionToken::new(payload))
     }
@@ -1477,6 +1539,24 @@ impl Output {
     pub fn answer_proposal_admitted(payload: AnswerProposalAdmitted) -> Self {
         Self::AnswerProposalAdmitted(payload)
     }
+    pub fn intercept_policy_created(payload: InterceptPolicy) -> Self {
+        Self::InterceptPolicyCreated(payload)
+    }
+    pub fn intercept_policy_replaced(payload: InterceptPolicy) -> Self {
+        Self::InterceptPolicyReplaced(payload)
+    }
+    pub fn intercept_policy_cancelled(payload: InterceptPolicyIdentifier) -> Self {
+        Self::InterceptPolicyCancelled(payload)
+    }
+    pub fn intercept_policies_listed(payload: ActiveInterceptPolicies) -> Self {
+        Self::InterceptPoliciesListed(payload)
+    }
+    pub fn parked_requests_fetched(payload: ParkedRequestSnapshot) -> Self {
+        Self::ParkedRequestsFetched(payload)
+    }
+    pub fn parked_request_answered(payload: ParkedRequestResolution) -> Self {
+        Self::ParkedRequestAnswered(payload)
+    }
     pub fn interface_observation_retracted(payload: SubscriptionToken) -> Self {
         Self::InterfaceObservationRetracted(InterfaceObservationRetracted::new(payload))
     }
@@ -1489,6 +1569,13 @@ impl Output {
 impl From<AuthorizationRequestSlot> for ApprovalSource {
     fn from(payload: AuthorizationRequestSlot) -> Self {
         Self::CriomeEscalation(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<ParkedRequestIdentifier> for ApprovalSource {
+    fn from(payload: ParkedRequestIdentifier) -> Self {
+        Self::CriomeInterception(payload)
     }
 }
 
@@ -1598,6 +1685,34 @@ impl From<AnswerProposal> for Input {
 }
 
 #[rustfmt::skip]
+impl From<InterceptPolicyCancellation> for Input {
+    fn from(payload: InterceptPolicyCancellation) -> Self {
+        Self::CancelInterceptPolicy(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<InterceptPolicyObservation> for Input {
+    fn from(payload: InterceptPolicyObservation) -> Self {
+        Self::ListInterceptPolicies(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<ParkedRequestQuery> for Input {
+    fn from(payload: ParkedRequestQuery) -> Self {
+        Self::FetchParkedRequests(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<ParkedRequestAnswer> for Input {
+    fn from(payload: ParkedRequestAnswer) -> Self {
+        Self::AnswerParkedRequest(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl From<SubscriptionToken> for Input {
     fn from(payload: SubscriptionToken) -> Self {
         Self::RetractInterfaceObservation(payload)
@@ -1636,6 +1751,34 @@ impl From<VerdictAccepted> for Output {
 impl From<AnswerProposalAdmitted> for Output {
     fn from(payload: AnswerProposalAdmitted) -> Self {
         Self::AnswerProposalAdmitted(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<InterceptPolicyIdentifier> for Output {
+    fn from(payload: InterceptPolicyIdentifier) -> Self {
+        Self::InterceptPolicyCancelled(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<ActiveInterceptPolicies> for Output {
+    fn from(payload: ActiveInterceptPolicies) -> Self {
+        Self::InterceptPoliciesListed(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<ParkedRequestSnapshot> for Output {
+    fn from(payload: ParkedRequestSnapshot) -> Self {
+        Self::ParkedRequestsFetched(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<ParkedRequestResolution> for Output {
+    fn from(payload: ParkedRequestResolution) -> Self {
+        Self::ParkedRequestAnswered(payload)
     }
 }
 
@@ -1692,14 +1835,26 @@ pub mod short_header {
     pub const INPUT_OBSERVE_INTERFACE_STATE: u64 = 0x0002000000000000;
     pub const INPUT_ANSWER_QUESTION: u64 = 0x0003000000000000;
     pub const INPUT_PROPOSE_EDITED_ANSWER: u64 = 0x0004000000000000;
-    pub const INPUT_RETRACT_INTERFACE_OBSERVATION: u64 = 0x0005000000000000;
+    pub const INPUT_CREATE_INTERCEPT_POLICY: u64 = 0x0005000000000000;
+    pub const INPUT_REPLACE_INTERCEPT_POLICY: u64 = 0x0006000000000000;
+    pub const INPUT_CANCEL_INTERCEPT_POLICY: u64 = 0x0007000000000000;
+    pub const INPUT_LIST_INTERCEPT_POLICIES: u64 = 0x0008000000000000;
+    pub const INPUT_FETCH_PARKED_REQUESTS: u64 = 0x0009000000000000;
+    pub const INPUT_ANSWER_PARKED_REQUEST: u64 = 0x000A000000000000;
+    pub const INPUT_RETRACT_INTERFACE_OBSERVATION: u64 = 0x000B000000000000;
     pub const OUTPUT_QUESTION_PRESENTED: u64 = 0x0100000000000000;
     pub const OUTPUT_UPDATE_ACCEPTED: u64 = 0x0101000000000000;
     pub const OUTPUT_INTERFACE_OBSERVATION_OPENED: u64 = 0x0102000000000000;
     pub const OUTPUT_VERDICT_ACCEPTED: u64 = 0x0103000000000000;
     pub const OUTPUT_ANSWER_PROPOSAL_ADMITTED: u64 = 0x0104000000000000;
-    pub const OUTPUT_INTERFACE_OBSERVATION_RETRACTED: u64 = 0x0105000000000000;
-    pub const OUTPUT_REJECTION: u64 = 0x0106000000000000;
+    pub const OUTPUT_INTERCEPT_POLICY_CREATED: u64 = 0x0105000000000000;
+    pub const OUTPUT_INTERCEPT_POLICY_REPLACED: u64 = 0x0106000000000000;
+    pub const OUTPUT_INTERCEPT_POLICY_CANCELLED: u64 = 0x0107000000000000;
+    pub const OUTPUT_INTERCEPT_POLICIES_LISTED: u64 = 0x0108000000000000;
+    pub const OUTPUT_PARKED_REQUESTS_FETCHED: u64 = 0x0109000000000000;
+    pub const OUTPUT_PARKED_REQUEST_ANSWERED: u64 = 0x010A000000000000;
+    pub const OUTPUT_INTERFACE_OBSERVATION_RETRACTED: u64 = 0x010B000000000000;
+    pub const OUTPUT_REJECTION: u64 = 0x010C000000000000;
 }
 
 #[rustfmt::skip]
@@ -1758,6 +1913,12 @@ pub enum InputRoute {
     ObserveInterfaceState,
     AnswerQuestion,
     ProposeEditedAnswer,
+    CreateInterceptPolicy,
+    ReplaceInterceptPolicy,
+    CancelInterceptPolicy,
+    ListInterceptPolicies,
+    FetchParkedRequests,
+    AnswerParkedRequest,
     RetractInterfaceObservation,
 }
 
@@ -1782,6 +1943,12 @@ pub enum OutputRoute {
     InterfaceObservationOpened,
     VerdictAccepted,
     AnswerProposalAdmitted,
+    InterceptPolicyCreated,
+    InterceptPolicyReplaced,
+    InterceptPolicyCancelled,
+    InterceptPoliciesListed,
+    ParkedRequestsFetched,
+    ParkedRequestAnswered,
     InterfaceObservationRetracted,
     Rejection,
 }
@@ -1795,6 +1962,12 @@ impl Input {
             Self::ObserveInterfaceState(_) => InputRoute::ObserveInterfaceState,
             Self::AnswerQuestion(_) => InputRoute::AnswerQuestion,
             Self::ProposeEditedAnswer(_) => InputRoute::ProposeEditedAnswer,
+            Self::CreateInterceptPolicy(_) => InputRoute::CreateInterceptPolicy,
+            Self::ReplaceInterceptPolicy(_) => InputRoute::ReplaceInterceptPolicy,
+            Self::CancelInterceptPolicy(_) => InputRoute::CancelInterceptPolicy,
+            Self::ListInterceptPolicies(_) => InputRoute::ListInterceptPolicies,
+            Self::FetchParkedRequests(_) => InputRoute::FetchParkedRequests,
+            Self::AnswerParkedRequest(_) => InputRoute::AnswerParkedRequest,
             Self::RetractInterfaceObservation(_) => {
                 InputRoute::RetractInterfaceObservation
             }
@@ -1807,6 +1980,14 @@ impl Input {
             Self::ObserveInterfaceState(_) => short_header::INPUT_OBSERVE_INTERFACE_STATE,
             Self::AnswerQuestion(_) => short_header::INPUT_ANSWER_QUESTION,
             Self::ProposeEditedAnswer(_) => short_header::INPUT_PROPOSE_EDITED_ANSWER,
+            Self::CreateInterceptPolicy(_) => short_header::INPUT_CREATE_INTERCEPT_POLICY,
+            Self::ReplaceInterceptPolicy(_) => {
+                short_header::INPUT_REPLACE_INTERCEPT_POLICY
+            }
+            Self::CancelInterceptPolicy(_) => short_header::INPUT_CANCEL_INTERCEPT_POLICY,
+            Self::ListInterceptPolicies(_) => short_header::INPUT_LIST_INTERCEPT_POLICIES,
+            Self::FetchParkedRequests(_) => short_header::INPUT_FETCH_PARKED_REQUESTS,
+            Self::AnswerParkedRequest(_) => short_header::INPUT_ANSWER_PARKED_REQUEST,
             Self::RetractInterfaceObservation(_) => {
                 short_header::INPUT_RETRACT_INTERFACE_OBSERVATION
             }
@@ -1822,6 +2003,24 @@ impl Input {
             short_header::INPUT_ANSWER_QUESTION => Ok(InputRoute::AnswerQuestion),
             short_header::INPUT_PROPOSE_EDITED_ANSWER => {
                 Ok(InputRoute::ProposeEditedAnswer)
+            }
+            short_header::INPUT_CREATE_INTERCEPT_POLICY => {
+                Ok(InputRoute::CreateInterceptPolicy)
+            }
+            short_header::INPUT_REPLACE_INTERCEPT_POLICY => {
+                Ok(InputRoute::ReplaceInterceptPolicy)
+            }
+            short_header::INPUT_CANCEL_INTERCEPT_POLICY => {
+                Ok(InputRoute::CancelInterceptPolicy)
+            }
+            short_header::INPUT_LIST_INTERCEPT_POLICIES => {
+                Ok(InputRoute::ListInterceptPolicies)
+            }
+            short_header::INPUT_FETCH_PARKED_REQUESTS => {
+                Ok(InputRoute::FetchParkedRequests)
+            }
+            short_header::INPUT_ANSWER_PARKED_REQUEST => {
+                Ok(InputRoute::AnswerParkedRequest)
             }
             short_header::INPUT_RETRACT_INTERFACE_OBSERVATION => {
                 Ok(InputRoute::RetractInterfaceObservation)
@@ -1883,6 +2082,12 @@ impl Output {
             }
             Self::VerdictAccepted(_) => OutputRoute::VerdictAccepted,
             Self::AnswerProposalAdmitted(_) => OutputRoute::AnswerProposalAdmitted,
+            Self::InterceptPolicyCreated(_) => OutputRoute::InterceptPolicyCreated,
+            Self::InterceptPolicyReplaced(_) => OutputRoute::InterceptPolicyReplaced,
+            Self::InterceptPolicyCancelled(_) => OutputRoute::InterceptPolicyCancelled,
+            Self::InterceptPoliciesListed(_) => OutputRoute::InterceptPoliciesListed,
+            Self::ParkedRequestsFetched(_) => OutputRoute::ParkedRequestsFetched,
+            Self::ParkedRequestAnswered(_) => OutputRoute::ParkedRequestAnswered,
             Self::InterfaceObservationRetracted(_) => {
                 OutputRoute::InterfaceObservationRetracted
             }
@@ -1899,6 +2104,24 @@ impl Output {
             Self::VerdictAccepted(_) => short_header::OUTPUT_VERDICT_ACCEPTED,
             Self::AnswerProposalAdmitted(_) => {
                 short_header::OUTPUT_ANSWER_PROPOSAL_ADMITTED
+            }
+            Self::InterceptPolicyCreated(_) => {
+                short_header::OUTPUT_INTERCEPT_POLICY_CREATED
+            }
+            Self::InterceptPolicyReplaced(_) => {
+                short_header::OUTPUT_INTERCEPT_POLICY_REPLACED
+            }
+            Self::InterceptPolicyCancelled(_) => {
+                short_header::OUTPUT_INTERCEPT_POLICY_CANCELLED
+            }
+            Self::InterceptPoliciesListed(_) => {
+                short_header::OUTPUT_INTERCEPT_POLICIES_LISTED
+            }
+            Self::ParkedRequestsFetched(_) => {
+                short_header::OUTPUT_PARKED_REQUESTS_FETCHED
+            }
+            Self::ParkedRequestAnswered(_) => {
+                short_header::OUTPUT_PARKED_REQUEST_ANSWERED
             }
             Self::InterfaceObservationRetracted(_) => {
                 short_header::OUTPUT_INTERFACE_OBSERVATION_RETRACTED
@@ -1918,6 +2141,24 @@ impl Output {
             short_header::OUTPUT_VERDICT_ACCEPTED => Ok(OutputRoute::VerdictAccepted),
             short_header::OUTPUT_ANSWER_PROPOSAL_ADMITTED => {
                 Ok(OutputRoute::AnswerProposalAdmitted)
+            }
+            short_header::OUTPUT_INTERCEPT_POLICY_CREATED => {
+                Ok(OutputRoute::InterceptPolicyCreated)
+            }
+            short_header::OUTPUT_INTERCEPT_POLICY_REPLACED => {
+                Ok(OutputRoute::InterceptPolicyReplaced)
+            }
+            short_header::OUTPUT_INTERCEPT_POLICY_CANCELLED => {
+                Ok(OutputRoute::InterceptPolicyCancelled)
+            }
+            short_header::OUTPUT_INTERCEPT_POLICIES_LISTED => {
+                Ok(OutputRoute::InterceptPoliciesListed)
+            }
+            short_header::OUTPUT_PARKED_REQUESTS_FETCHED => {
+                Ok(OutputRoute::ParkedRequestsFetched)
+            }
+            short_header::OUTPUT_PARKED_REQUEST_ANSWERED => {
+                Ok(OutputRoute::ParkedRequestAnswered)
             }
             short_header::OUTPUT_INTERFACE_OBSERVATION_RETRACTED => {
                 Ok(OutputRoute::InterfaceObservationRetracted)
@@ -1979,6 +2220,12 @@ impl signal_frame::SignalOperationHeads for Input {
         "ObserveInterfaceState",
         "AnswerQuestion",
         "ProposeEditedAnswer",
+        "CreateInterceptPolicy",
+        "ReplaceInterceptPolicy",
+        "CancelInterceptPolicy",
+        "ListInterceptPolicies",
+        "FetchParkedRequests",
+        "AnswerParkedRequest",
         "RetractInterfaceObservation",
     ];
 }

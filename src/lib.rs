@@ -68,6 +68,18 @@ impl TimestampNanos {
     }
 }
 
+impl InterceptPolicyObservation {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
+impl Default for InterceptPolicyObservation {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl QuestionProposal {
     pub fn new(
         source: ApprovalSource,
@@ -195,7 +207,20 @@ impl ApprovalSource {
     pub fn criome_slot(&self) -> Option<&AuthorizationRequestSlot> {
         match self {
             ApprovalSource::CriomeEscalation(slot) => Some(slot),
-            ApprovalSource::AgentQuestion | ApprovalSource::LocalSystemPrompt => None,
+            ApprovalSource::CriomeInterception(_)
+            | ApprovalSource::AgentQuestion
+            | ApprovalSource::LocalSystemPrompt => None,
+        }
+    }
+
+    /// The parked criome interception request, when this question originated
+    /// from a Spirit operation intercepted after guardian allow.
+    pub fn parked_request(&self) -> Option<&ParkedRequestIdentifier> {
+        match self {
+            ApprovalSource::CriomeInterception(identifier) => Some(identifier),
+            ApprovalSource::CriomeEscalation(_)
+            | ApprovalSource::AgentQuestion
+            | ApprovalSource::LocalSystemPrompt => None,
         }
     }
 }

@@ -17,6 +17,8 @@ This crate owns the typed wire vocabulary for that surface:
 - answering questions with the closed `ApprovalDecision` set;
 - proposing an edited answer as a new typed proposal object, not as a verdict
   payload;
+- asking the Mentci daemon to create, replace, cancel, list, and fetch criome
+  intercept-policy and parked-request state through criome's meta socket;
 - retracting interface observations by daemon-minted subscription token.
 
 ## The criome escalation slot is cross-imported, not redefined
@@ -41,6 +43,16 @@ it through `ProjectedInterfaceState::criome_access` and knows whether to
 present answer controls — observation-only for a read-only daemon, answerable
 for a write daemon. The access level is the daemon's to set and the client's to
 reflect; the client never elevates it.
+
+## Criome intercept policy forwarding
+
+Mentci clients do not own criome policy state and do not open criome's meta
+socket directly. The `signal-mentci` contract carries client-facing roots for
+policy creation/replacement/cancellation/listing and parked-request fetch/answer
+so thin UIs can ask the Mentci daemon to perform those actions. The payloads are
+cross-imported from `signal-criome`; criome remains the owner of policy
+identity, target selectors, parked request identity, and manual/automatic audit
+metadata.
 
 ## Closed verdicts
 
