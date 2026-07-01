@@ -339,10 +339,18 @@
     state.ProjectedInterfaceState
   }
 
+  ;; NotificationSlice — the current-notification slice a NotificationProjection
+  ;; carries. Strict positional NOTA forbids an (Optional T) variant payload, so
+  ;; the "no current notification" case is the explicit Empty member and a
+  ;; present notification carries its text.
+  NotificationSlice [
+    Empty
+    (Present NotificationText)
+  ]
   InterfaceProjection [
     (FullProjection InterfaceState)
     (StatusProjection StatusText)
-    (NotificationProjection (Optional NotificationText))
+    (NotificationProjection NotificationSlice)
     (PendingQuestionsProjection PendingQuestionsView)
   ]
 

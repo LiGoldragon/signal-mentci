@@ -1,7 +1,8 @@
 use signal_mentci::{
     AnswerText, ApprovalQuestion, ApprovalSource, AuthorizationRequestSlot, ContextBody,
     ContextLabel, CriomeAccess, ExplanationText, InterfaceProjection, InterfaceState,
-    NotificationText, PaneContent, PaneLabel, PendingQuestionsView, ProjectedInterfaceState,
+    NotificationSlice, NotificationText, PaneContent, PaneLabel, PendingQuestionsView,
+    ProjectedInterfaceState,
     PromptText, QuestionContext, QuestionIdentifier, QuestionProposal, RevisionCounter, StatusText,
 };
 
@@ -88,9 +89,9 @@ fn non_question_projections_have_empty_question_readers() {
     };
     let notification_projection = ProjectedInterfaceState {
         revision: RevisionCounter::new(11),
-        projection: InterfaceProjection::NotificationProjection(Some(NotificationText::new(
-            "new-question",
-        ))),
+        projection: InterfaceProjection::NotificationProjection(NotificationSlice::Present(
+            NotificationText::new("new-question"),
+        )),
     };
 
     assert!(status_projection.pending_questions().is_empty());

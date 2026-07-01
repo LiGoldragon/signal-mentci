@@ -141,6 +141,19 @@ impl InterfaceState {
     }
 }
 
+impl NotificationSlice {
+    /// Project the daemon's optional current notification into the strict
+    /// positional slice: an absent notification is `Empty`, a present one
+    /// carries its text. The wire form is always a required variant payload
+    /// while the daemon's own state stays an ordinary `Option`.
+    pub fn from_current(notification: Option<NotificationText>) -> Self {
+        match notification {
+            Some(text) => Self::Present(text),
+            None => Self::Empty,
+        }
+    }
+}
+
 impl PendingQuestionsView {
     pub fn from_questions(questions: Vec<ApprovalQuestion>) -> Self {
         Self::new(VisibleQuestions::new(questions))
