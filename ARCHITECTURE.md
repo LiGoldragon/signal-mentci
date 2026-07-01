@@ -4,6 +4,16 @@
 schema-derived contract crate: generated rkyv records, optional NOTA projection,
 and a `signal-frame` request/reply/stream envelope.
 
+## Direction
+
+Mentci is a state-bearing programmable UI component: the daemon owns the canonical UI state, and clients — CLI, egui shell, TUI, editor pane, status bar, agentic flows — are thin producers/subscribers over that daemon-owned state. A UI change exists because the daemon state changed.
+
+The criome escalation slot (`ApprovalSource::CriomeEscalation`) is cross-imported from `signal_criome::schema::lib`, not redefined here. signal-mentci owns the slot's placement in the approval question; criome owns the type. Clients answer by sending `AnswerQuestion` to the Mentci daemon, and the daemon delivers the verdict to criome by that slot — clients never open a criome socket directly.
+
+The daemon holds its criome connection in read-only or write mode and mirrors that access level to clients via `InterfaceState::criome_access`. Clients present answer controls only when the daemon has write access; they never elevate the access level themselves.
+
+The verdict is closed: `ApproveSuggestedAnswer`, `Reject`, or `Defer`. When the psyche edits a suggestion, Mentci creates an `AnswerProposal` object that goes through the normal authorization path; there is no verdict side channel.
+
 ## Owned
 
 - `Input` / `Output` operation roots for the Mentci UI surface, including
