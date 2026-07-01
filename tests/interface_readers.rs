@@ -2,8 +2,8 @@ use signal_mentci::{
     AnswerText, ApprovalQuestion, ApprovalSource, AuthorizationRequestSlot, ContextBody,
     ContextLabel, CriomeAccess, ExplanationText, InterfaceProjection, InterfaceState,
     NotificationSlice, NotificationText, PaneContent, PaneLabel, PendingQuestionsView,
-    ProjectedInterfaceState,
-    PromptText, QuestionContext, QuestionIdentifier, QuestionProposal, RevisionCounter, StatusText,
+    ProjectedInterfaceState, PromptText, QuestionContext, QuestionIdentifier, QuestionProposal,
+    RevisionCounter, StatusText,
 };
 
 fn question_proposal() -> QuestionProposal {
