@@ -450,284 +450,27 @@ pub struct InterfaceObservationOpened {
 }
 
 #[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum NotificationSlice {
+    Empty,
+    Present(NotificationText),
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum InterfaceProjection {
     FullProjection(InterfaceState),
     StatusProjection(StatusText),
-    NotificationProjection(Option<NotificationText>),
+    NotificationProjection(NotificationSlice),
     PendingQuestionsProjection(PendingQuestionsView),
-}
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl nota::NotaBodyDecode for InterfaceProjection {
-    fn from_nota_body(body: &nota::NotaBody<'_>) -> Result<Self, nota::NotaDecodeError> {
-        let root_objects = body.root_objects();
-        if root_objects.len() == 1
-            && let Some(variant) = root_objects[0].demote_to_string()
-        {
-            return match variant {
-                "NotificationProjection" => Ok(Self::NotificationProjection(None)),
-                other => {
-                    Err(nota::NotaDecodeError::UnknownVariant {
-                        enum_name: "InterfaceProjection",
-                        variant: other.to_owned(),
-                    })
-                }
-            };
-        }
-        let children = body.expect_fields("InterfaceProjection", 2)?;
-        let variant = children[0]
-            .demote_to_string()
-            .ok_or(nota::NotaDecodeError::ExpectedAtom {
-                type_name: "enum variant",
-            })?;
-        match variant {
-            "FullProjection" => {
-                Ok(
-                    Self::FullProjection(
-                        <InterfaceState as nota::NotaDecode>::from_nota_block(
-                            &children[1],
-                        )?,
-                    ),
-                )
-            }
-            "StatusProjection" => {
-                Ok(
-                    Self::StatusProjection(
-                        <StatusText as nota::NotaDecode>::from_nota_block(&children[1])?,
-                    ),
-                )
-            }
-            "NotificationProjection" => {
-                Ok(
-                    Self::NotificationProjection(
-                        Some(
-                            <NotificationText as nota::NotaDecode>::from_nota_block(
-                                &children[1],
-                            )?,
-                        ),
-                    ),
-                )
-            }
-            "PendingQuestionsProjection" => {
-                Ok(
-                    Self::PendingQuestionsProjection(
-                        <PendingQuestionsView as nota::NotaDecode>::from_nota_block(
-                            &children[1],
-                        )?,
-                    ),
-                )
-            }
-            other => {
-                Err(nota::NotaDecodeError::UnknownVariant {
-                    enum_name: "InterfaceProjection",
-                    variant: other.to_owned(),
-                })
-            }
-        }
-    }
-}
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl nota::NotaDecode for InterfaceProjection {
-    fn from_nota_block(block: &nota::Block) -> Result<Self, nota::NotaDecodeError> {
-        if block.demote_to_string().is_some() {
-            let root_objects = std::slice::from_ref(block);
-            let body = nota::NotaBody::new(root_objects);
-            return <Self as nota::NotaBodyDecode>::from_nota_body(&body);
-        }
-        let body = nota::NotaBlock::new(block)
-            .expect_body(nota::Delimiter::Parenthesis, "InterfaceProjection")?;
-        <Self as nota::NotaBodyDecode>::from_nota_body(&body)
-    }
-}
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl nota::NotaBodyEncode for InterfaceProjection {
-    fn to_nota_body(&self) -> nota::NotaBodyEncoding {
-        match self {
-            Self::FullProjection(payload) => {
-                nota::NotaBodyEncoding::new(
-                    vec![
-                        "FullProjection".to_owned(), nota::NotaEncode::to_nota(payload),
-                    ],
-                )
-            }
-            Self::StatusProjection(payload) => {
-                nota::NotaBodyEncoding::new(
-                    vec![
-                        "StatusProjection".to_owned(),
-                        nota::NotaEncode::to_nota(payload),
-                    ],
-                )
-            }
-            Self::NotificationProjection(payload) => {
-                let mut fields = vec!["NotificationProjection".to_owned()];
-                if let Some(payload) = payload {
-                    fields.push(nota::NotaEncode::to_nota(payload));
-                }
-                nota::NotaBodyEncoding::new(fields)
-            }
-            Self::PendingQuestionsProjection(payload) => {
-                nota::NotaBodyEncoding::new(
-                    vec![
-                        "PendingQuestionsProjection".to_owned(),
-                        nota::NotaEncode::to_nota(payload),
-                    ],
-                )
-            }
-        }
-    }
-}
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl nota::NotaEncode for InterfaceProjection {
-    fn to_nota(&self) -> String {
-        let body = <Self as nota::NotaBodyEncode>::to_nota_body(self);
-        if body.fields().len() == 1 {
-            body.to_nota()
-        } else {
-            body.to_delimited_nota(nota::Delimiter::Parenthesis)
-        }
-    }
-}
-#[rustfmt::skip]
-#[cfg(feature = "nota-text")]
-impl nota::NotaDecodeTraced for InterfaceProjection {
-    fn instance_reference() -> nota::TypeReference {
-        nota::TypeReference::named("InterfaceProjection")
-    }
-    fn from_nota_block_traced(
-        block: &nota::Block,
-    ) -> Result<nota::DecodedWithSchema<Self>, nota::NotaDecodeError> {
-        if let Some(variant) = block.demote_to_string() {
-            match variant {
-                "NotificationProjection" => {
-                    return Ok(
-                        nota::DecodedWithSchema::new(
-                            Self::NotificationProjection(None),
-                            nota::InstanceSchema::new(
-                                <Self as nota::NotaDecodeTraced>::instance_reference(),
-                                nota::InstanceSchemaBody::EnumPayload(
-                                    Some(
-                                        Box::new(
-                                            nota::InstanceSchema::new(
-                                                nota::TypeReference::optional(
-                                                    nota::TypeReference::named("NotificationText"),
-                                                ),
-                                                nota::InstanceSchemaBody::Optional(None),
-                                            ),
-                                        ),
-                                    ),
-                                ),
-                            ),
-                        ),
-                    );
-                }
-                other => {
-                    return Err(nota::NotaDecodeError::UnknownVariant {
-                        enum_name: "InterfaceProjection",
-                        variant: other.to_owned(),
-                    });
-                }
-            }
-        }
-        let body = nota::NotaBlock::new(block)
-            .expect_body(nota::Delimiter::Parenthesis, "InterfaceProjection")?;
-        let children = body.expect_fields("InterfaceProjection", 2)?;
-        let variant = children[0]
-            .demote_to_string()
-            .ok_or(nota::NotaDecodeError::ExpectedAtom {
-                type_name: "enum variant",
-            })?;
-        match variant {
-            "FullProjection" => {
-                let decoded = <InterfaceState as nota::NotaDecodeTraced>::from_nota_block_traced(
-                    &children[1],
-                )?;
-                let (payload_value, payload_schema) = decoded.into_parts();
-                Ok(
-                    nota::DecodedWithSchema::new(
-                        Self::FullProjection(payload_value),
-                        nota::InstanceSchema::new(
-                            <Self as nota::NotaDecodeTraced>::instance_reference(),
-                            nota::InstanceSchemaBody::EnumPayload(
-                                Some(Box::new(payload_schema)),
-                            ),
-                        ),
-                    ),
-                )
-            }
-            "StatusProjection" => {
-                let decoded = <StatusText as nota::NotaDecodeTraced>::from_nota_block_traced(
-                    &children[1],
-                )?;
-                let (payload_value, payload_schema) = decoded.into_parts();
-                Ok(
-                    nota::DecodedWithSchema::new(
-                        Self::StatusProjection(payload_value),
-                        nota::InstanceSchema::new(
-                            <Self as nota::NotaDecodeTraced>::instance_reference(),
-                            nota::InstanceSchemaBody::EnumPayload(
-                                Some(Box::new(payload_schema)),
-                            ),
-                        ),
-                    ),
-                )
-            }
-            "NotificationProjection" => {
-                let leaf = <NotificationText as nota::NotaDecodeTraced>::from_nota_block_traced(
-                    &children[1],
-                )?;
-                let (leaf_value, leaf_schema) = leaf.into_parts();
-                Ok(
-                    nota::DecodedWithSchema::new(
-                        Self::NotificationProjection(Some(leaf_value)),
-                        nota::InstanceSchema::new(
-                            <Self as nota::NotaDecodeTraced>::instance_reference(),
-                            nota::InstanceSchemaBody::EnumPayload(
-                                Some(
-                                    Box::new(
-                                        nota::InstanceSchema::new(
-                                            nota::TypeReference::optional(
-                                                nota::TypeReference::named("NotificationText"),
-                                            ),
-                                            nota::InstanceSchemaBody::Optional(
-                                                Some(Box::new(leaf_schema)),
-                                            ),
-                                        ),
-                                    ),
-                                ),
-                            ),
-                        ),
-                    ),
-                )
-            }
-            "PendingQuestionsProjection" => {
-                let decoded = <PendingQuestionsView as nota::NotaDecodeTraced>::from_nota_block_traced(
-                    &children[1],
-                )?;
-                let (payload_value, payload_schema) = decoded.into_parts();
-                Ok(
-                    nota::DecodedWithSchema::new(
-                        Self::PendingQuestionsProjection(payload_value),
-                        nota::InstanceSchema::new(
-                            <Self as nota::NotaDecodeTraced>::instance_reference(),
-                            nota::InstanceSchemaBody::EnumPayload(
-                                Some(Box::new(payload_schema)),
-                            ),
-                        ),
-                    ),
-                )
-            }
-            other => {
-                Err(nota::NotaDecodeError::UnknownVariant {
-                    enum_name: "InterfaceProjection",
-                    variant: other.to_owned(),
-                })
-            }
-        }
-    }
 }
 
 #[rustfmt::skip]
@@ -1460,6 +1203,13 @@ impl InterfaceMutation {
 }
 
 #[rustfmt::skip]
+impl NotificationSlice {
+    pub fn present(payload: String) -> Self {
+        Self::Present(NotificationText::new(payload))
+    }
+}
+
+#[rustfmt::skip]
 impl InterfaceProjection {
     pub fn full_projection(payload: InterfaceState) -> Self {
         Self::FullProjection(payload)
@@ -1467,7 +1217,7 @@ impl InterfaceProjection {
     pub fn status_projection(payload: String) -> Self {
         Self::StatusProjection(StatusText::new(payload))
     }
-    pub fn notification_projection(payload: Option<NotificationText>) -> Self {
+    pub fn notification_projection(payload: NotificationSlice) -> Self {
         Self::NotificationProjection(payload)
     }
     pub fn pending_questions_projection(payload: VisibleQuestions) -> Self {
@@ -1622,6 +1372,13 @@ impl From<QuestionIdentifier> for InterfaceMutation {
 }
 
 #[rustfmt::skip]
+impl From<NotificationText> for NotificationSlice {
+    fn from(payload: NotificationText) -> Self {
+        Self::Present(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl From<InterfaceState> for InterfaceProjection {
     fn from(payload: InterfaceState) -> Self {
         Self::FullProjection(payload)
@@ -1632,6 +1389,13 @@ impl From<InterfaceState> for InterfaceProjection {
 impl From<StatusText> for InterfaceProjection {
     fn from(payload: StatusText) -> Self {
         Self::StatusProjection(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<NotificationSlice> for InterfaceProjection {
+    fn from(payload: NotificationSlice) -> Self {
+        Self::NotificationProjection(payload)
     }
 }
 
