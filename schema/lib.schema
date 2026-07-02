@@ -60,8 +60,8 @@
 ;; from its type is written field.Type (dot form); a field whose name equals
 ;; the snake-case of its type is written as the bare PascalCase type (a
 ;; redundant explicit role is a RedundantExplicitFieldRole error); a
-;; composite / optional field carries its role as a Type-cased head,
-;; (FieldRole (Vector X)) / (FieldRole (Optional X)), whose snake-case becomes
+;; composite / optional field carries its role as a dot-bound field name,
+;; FieldRole.(Vector X) / FieldRole.(Optional X), whose snake-case becomes
 ;; the field name. The retired two-atom  field Type  pair no longer lowers.
 
 ;; -------------------------------------------------------------------
