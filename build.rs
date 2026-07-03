@@ -1,6 +1,6 @@
 use std::{env, path::PathBuf};
 
-use schema_rust_next::build::{
+use schema_rust::build::{
     CargoSchemaMetadata, DependencySchema, GenerationDriver, GenerationPlan,
 };
 
