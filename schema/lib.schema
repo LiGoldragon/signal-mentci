@@ -55,7 +55,7 @@
 ;; local stand-in marked  ;; (cross-import target: signal-standard)  pending
 ;; that crate's cross-import.
 ;;
-;; GRAMMAR (current schema-next main, past abae95f). The positional
+;; GRAMMAR (current schema main, past abae95f). The positional
 ;; struct-field grammar uses explicit field roles: a field whose name differs
 ;; from its type is written field.Type (dot form); a field whose name equals
 ;; the snake-case of its type is written as the bare PascalCase type (a
