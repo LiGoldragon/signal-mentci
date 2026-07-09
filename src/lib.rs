@@ -89,10 +89,10 @@ impl QuestionProposal {
         context: Vec<QuestionContext>,
     ) -> Self {
         Self {
-            source,
-            prompt,
+            approval_source: source,
+            prompt_text: prompt,
             suggested_answer: SuggestedAnswer::new(suggested_answer),
-            explanation,
+            explanation_text: explanation,
             context: Context::new(context),
         }
     }
@@ -108,8 +108,8 @@ impl InterfaceState {
         criome_access: CriomeAccess,
     ) -> Self {
         Self {
-            revision,
-            status,
+            revision_counter: revision,
+            status_text: status,
             notification: Notification::new(notification),
             panes: Panes::new(panes),
             pending_questions: PendingQuestions::new(pending_questions),
@@ -174,7 +174,7 @@ impl ProjectedInterfaceState {
     /// reader the shared observability model needs to drive the approval
     /// cursor regardless of which interest opened the stream.
     pub fn pending_questions(&self) -> &[ApprovalQuestion] {
-        match &self.projection {
+        match &self.interface_projection {
             InterfaceProjection::FullProjection(state) => state.pending_questions(),
             InterfaceProjection::PendingQuestionsProjection(view) => view.questions(),
             InterfaceProjection::StatusProjection(_)
@@ -188,7 +188,7 @@ impl ProjectedInterfaceState {
     /// client on a narrow interest learns no mode (`None`) and defaults to
     /// observation-only.
     pub fn criome_access(&self) -> Option<CriomeAccess> {
-        match &self.projection {
+        match &self.interface_projection {
             InterfaceProjection::FullProjection(state) => Some(state.criome_access()),
             InterfaceProjection::StatusProjection(_)
             | InterfaceProjection::NotificationProjection(_)

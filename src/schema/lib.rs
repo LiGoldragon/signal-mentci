@@ -200,8 +200,8 @@ pub enum ApprovalSource {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct QuestionContext {
-    pub label: ContextLabel,
-    pub body: ContextBody,
+    pub context_label: ContextLabel,
+    pub context_body: ContextBody,
 }
 
 #[rustfmt::skip]
@@ -227,10 +227,10 @@ pub(crate) struct Context(Vec<QuestionContext>);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct QuestionProposal {
-    pub source: ApprovalSource,
-    pub prompt: PromptText,
+    pub approval_source: ApprovalSource,
+    pub prompt_text: PromptText,
     pub(crate) suggested_answer: SuggestedAnswer,
-    pub explanation: ExplanationText,
+    pub explanation_text: ExplanationText,
     pub(crate) context: Context,
 }
 
@@ -241,8 +241,8 @@ pub struct QuestionProposal {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ApprovalQuestion {
-    pub identifier: QuestionIdentifier,
-    pub proposal: QuestionProposal,
+    pub question_identifier: QuestionIdentifier,
+    pub question_proposal: QuestionProposal,
 }
 
 #[rustfmt::skip]
@@ -293,9 +293,9 @@ pub enum CriomeAccess {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ApprovalVerdict {
-    pub question: QuestionIdentifier,
-    pub decision: ApprovalDecision,
-    pub answered_by: SubscriberName,
+    pub question_identifier: QuestionIdentifier,
+    pub approval_decision: ApprovalDecision,
+    pub subscriber_name: SubscriberName,
 }
 
 #[rustfmt::skip]
@@ -305,9 +305,9 @@ pub struct ApprovalVerdict {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AnswerProposal {
-    pub question: QuestionIdentifier,
-    pub body: AnswerText,
-    pub authored_by: SubscriberName,
+    pub question_identifier: QuestionIdentifier,
+    pub answer_text: AnswerText,
+    pub subscriber_name: SubscriberName,
 }
 
 #[rustfmt::skip]
@@ -325,8 +325,8 @@ pub struct InterceptPolicyObservation {}
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct InterfaceUpdate {
-    pub identifier: UpdateIdentifier,
-    pub mutation: InterfaceMutation,
+    pub update_identifier: UpdateIdentifier,
+    pub interface_mutation: InterfaceMutation,
 }
 
 #[rustfmt::skip]
@@ -351,8 +351,8 @@ pub enum InterfaceMutation {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct PaneContent {
-    pub pane: PaneLabel,
-    pub body: ContextBody,
+    pub pane_label: PaneLabel,
+    pub context_body: ContextBody,
 }
 
 #[rustfmt::skip]
@@ -386,8 +386,8 @@ pub(crate) struct PendingQuestions(Vec<ApprovalQuestion>);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct InterfaceState {
-    pub revision: RevisionCounter,
-    pub status: StatusText,
+    pub revision_counter: RevisionCounter,
+    pub status_text: StatusText,
     pub(crate) notification: Notification,
     pub(crate) panes: Panes,
     pub(crate) pending_questions: PendingQuestions,
@@ -423,8 +423,8 @@ pub enum InterfaceInterest {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct InterfaceStateObservation {
-    pub subscriber: SubscriberName,
-    pub interest: InterfaceInterest,
+    pub subscriber_name: SubscriberName,
+    pub interface_interest: InterfaceInterest,
 }
 
 #[rustfmt::skip]
@@ -434,8 +434,8 @@ pub struct InterfaceStateObservation {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ProjectedInterfaceState {
-    pub revision: RevisionCounter,
-    pub projection: InterfaceProjection,
+    pub revision_counter: RevisionCounter,
+    pub interface_projection: InterfaceProjection,
 }
 
 #[rustfmt::skip]
@@ -445,8 +445,8 @@ pub struct ProjectedInterfaceState {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct InterfaceObservationOpened {
-    pub token: SubscriptionToken,
-    pub state: ProjectedInterfaceState,
+    pub subscription_token: SubscriptionToken,
+    pub projected_interface_state: ProjectedInterfaceState,
 }
 
 #[rustfmt::skip]
@@ -504,9 +504,9 @@ pub struct StandardSocket(SocketPath);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct QuestionPresented {
-    pub question: QuestionIdentifier,
-    pub revision: RevisionCounter,
-    pub accepted_at: TimestampNanos,
+    pub question_identifier: QuestionIdentifier,
+    pub revision_counter: RevisionCounter,
+    pub timestamp_nanos: TimestampNanos,
 }
 
 #[rustfmt::skip]
@@ -516,8 +516,8 @@ pub struct QuestionPresented {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct UpdateAccepted {
-    pub identifier: UpdateIdentifier,
-    pub revision: RevisionCounter,
+    pub update_identifier: UpdateIdentifier,
+    pub revision_counter: RevisionCounter,
 }
 
 #[rustfmt::skip]
@@ -527,9 +527,9 @@ pub struct UpdateAccepted {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct VerdictAccepted {
-    pub question: QuestionIdentifier,
-    pub decision: ApprovalDecision,
-    pub accepted_at: TimestampNanos,
+    pub question_identifier: QuestionIdentifier,
+    pub approval_decision: ApprovalDecision,
+    pub timestamp_nanos: TimestampNanos,
 }
 
 #[rustfmt::skip]
@@ -539,10 +539,10 @@ pub struct VerdictAccepted {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AnswerProposalAdmitted {
-    pub proposal: ProposalIdentifier,
-    pub question: QuestionIdentifier,
-    pub digest: ProposalDigest,
-    pub revision: RevisionCounter,
+    pub proposal_identifier: ProposalIdentifier,
+    pub question_identifier: QuestionIdentifier,
+    pub proposal_digest: ProposalDigest,
+    pub revision_counter: RevisionCounter,
 }
 
 #[rustfmt::skip]

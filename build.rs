@@ -1,8 +1,6 @@
 use std::{env, path::PathBuf};
 
-use schema_rust::build::{
-    CargoSchemaMetadata, DependencySchema, GenerationDriver, GenerationPlan,
-};
+use schema_rust::build::{CargoSchemaMetadata, DependencySchema, GenerationDriver, GenerationPlan};
 
 fn main() {
     SchemaBuild::from_environment().run();

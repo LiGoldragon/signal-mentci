@@ -56,10 +56,10 @@
 ;; that crate's cross-import.
 ;;
 ;; GRAMMAR (current schema main, past abae95f). The positional
-;; struct-field grammar uses explicit field roles: a field whose name differs
-;; from its type is written field.Type (dot form); a field whose name equals
-;; the snake-case of its type is written as the bare PascalCase type (a
-;; redundant explicit role is a RedundantExplicitFieldRole error); a
+;; struct-field grammar uses explicit field roles only when the same
+;; payload type appears more than once in a product. A unique field is written
+;; as the bare PascalCase type and derives its role from that type; writing
+;; field.Type there is an ExplicitFieldOnUniqueProductComponent error. A
 ;; composite / optional field carries its role as a dot-bound field name,
 ;; FieldRole.(Vector X) / FieldRole.(Optional X), whose snake-case becomes
 ;; the field name. The retired two-atom  field Type  pair no longer lowers.
@@ -156,8 +156,8 @@
   ;; surrounding diff, the agent's working note).
   ;; -------------------------------------------------------------------
   QuestionContext {
-    label.ContextLabel
-    body.ContextBody
+    ContextLabel
+    ContextBody
   }
 
   ;; -------------------------------------------------------------------
@@ -169,10 +169,10 @@
   ;; suggested answer, an explanation, and zero or more context entries.
   ;; -------------------------------------------------------------------
   QuestionProposal {
-    source.ApprovalSource
-    prompt.PromptText
+    ApprovalSource
+    PromptText
     SuggestedAnswer.(Optional AnswerText)
-    explanation.ExplanationText
+    ExplanationText
     Context.(Vector QuestionContext)
   }
 
@@ -183,8 +183,8 @@
   ;; mint its identity.
   ;; -------------------------------------------------------------------
   ApprovalQuestion {
-    identifier.QuestionIdentifier
-    proposal.QuestionProposal
+    QuestionIdentifier
+    QuestionProposal
   }
 
   ;; -------------------------------------------------------------------
@@ -224,9 +224,9 @@
   ;; surface).
   ;; -------------------------------------------------------------------
   ApprovalVerdict {
-    question.QuestionIdentifier
-    decision.ApprovalDecision
-    answered_by.SubscriberName
+    QuestionIdentifier
+    ApprovalDecision
+    SubscriberName
   }
 
   ;; -------------------------------------------------------------------
@@ -242,9 +242,9 @@
   ;; text anywhere).
   ;; -------------------------------------------------------------------
   AnswerProposal {
-    question.QuestionIdentifier
-    body.AnswerText
-    authored_by.SubscriberName
+    QuestionIdentifier
+    AnswerText
+    SubscriberName
   }
 
   InterceptPolicyObservation { }
@@ -256,8 +256,8 @@
   ;; daemon state changes (Spirit 7x5z).
   ;; -------------------------------------------------------------------
   InterfaceUpdate {
-    identifier.UpdateIdentifier
-    mutation.InterfaceMutation
+    UpdateIdentifier
+    InterfaceMutation
   }
 
   InterfaceMutation [
@@ -270,8 +270,8 @@
   ]
 
   PaneContent {
-    pane.PaneLabel
-    body.ContextBody
+    PaneLabel
+    ContextBody
   }
 
   ;; -------------------------------------------------------------------
@@ -282,8 +282,8 @@
   ;; render exactly this; filtered clients render the projection below.
   ;; -------------------------------------------------------------------
   InterfaceState {
-    revision.RevisionCounter
-    status.StatusText
+    RevisionCounter
+    StatusText
     Notification.(Optional NotificationText)
     Panes.(Vector PaneContent)
     PendingQuestions.(Vector ApprovalQuestion)
@@ -314,8 +314,8 @@
   ;; (operator 421 §3) and returns it in the opened stream so one client can
   ;; hold many distinct subscriptions, reconnect, or change interest.
   InterfaceStateObservation {
-    subscriber.SubscriberName
-    interest.InterfaceInterest
+    SubscriberName
+    InterfaceInterest
   }
 
   ;; -------------------------------------------------------------------
@@ -327,16 +327,16 @@
   ;; the stream's opened-with snapshot.
   ;; -------------------------------------------------------------------
   ProjectedInterfaceState {
-    revision.RevisionCounter
-    projection.InterfaceProjection
+    RevisionCounter
+    InterfaceProjection
   }
 
   ;; ObserveInterfaceState opens a subscription stream. The daemon mints the
   ;; token and returns it with the first projected state so the client can later
   ;; retract the observation.
   InterfaceObservationOpened {
-    token.SubscriptionToken
-    state.ProjectedInterfaceState
+    SubscriptionToken
+    ProjectedInterfaceState
   }
 
   ;; NotificationSlice — the current-notification slice a NotificationProjection
@@ -367,7 +367,7 @@
   ;;  type; deferred while signal-standard is not yet a crate.)
   ;; -------------------------------------------------------------------
   StandardSocket {
-    path.SocketPath
+    SocketPath
   }
 
   ;; -------------------------------------------------------------------
@@ -378,20 +378,20 @@
   ;; identifier; the client learns the id here (operator 421 §2). Carries the
   ;; new question id and the revision the admit bumped.
   QuestionPresented {
-    question.QuestionIdentifier
-    revision.RevisionCounter
-    accepted_at.TimestampNanos
+    QuestionIdentifier
+    RevisionCounter
+    TimestampNanos
   }
 
   UpdateAccepted {
-    identifier.UpdateIdentifier
-    revision.RevisionCounter
+    UpdateIdentifier
+    RevisionCounter
   }
 
   VerdictAccepted {
-    question.QuestionIdentifier
-    decision.ApprovalDecision
-    accepted_at.TimestampNanos
+    QuestionIdentifier
+    ApprovalDecision
+    TimestampNanos
   }
 
   ;; AnswerProposalAdmitted — the daemon admitted an edited-answer proposal as
@@ -399,14 +399,14 @@
   ;; computes the canonical digest criome will later approve, and returns
   ;; both. The verdict that follows approves THIS digest, not a loose string.
   AnswerProposalAdmitted {
-    proposal.ProposalIdentifier
-    question.QuestionIdentifier
-    digest.ProposalDigest
-    revision.RevisionCounter
+    ProposalIdentifier
+    QuestionIdentifier
+    ProposalDigest
+    RevisionCounter
   }
 
   InterfaceObservationRetracted {
-    token.SubscriptionToken
+    SubscriptionToken
   }
 
   RejectionReason [
@@ -419,7 +419,7 @@
   ]
 
   Rejection {
-    reason.RejectionReason
+    RejectionReason
   }
 
   ;; -------------------------------------------------------------------

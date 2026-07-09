@@ -2,8 +2,8 @@ use signal_mentci::{
     AnswerText, ApprovalQuestion, ApprovalSource, AuthorizationRequestSlot, ContextBody,
     ContextLabel, CriomeAccess, ExplanationText, InterfaceProjection, InterfaceState,
     NotificationSlice, NotificationText, PaneContent, PaneLabel, PendingQuestionsView,
-    ProjectedInterfaceState,
-    PromptText, QuestionContext, QuestionIdentifier, QuestionProposal, RevisionCounter, StatusText,
+    ProjectedInterfaceState, PromptText, QuestionContext, QuestionIdentifier, QuestionProposal,
+    RevisionCounter, StatusText,
 };
 
 fn question_proposal() -> QuestionProposal {
@@ -13,16 +13,16 @@ fn question_proposal() -> QuestionProposal {
         Some(AnswerText::new("approve")),
         ExplanationText::new("agent-proposed-answer"),
         vec![QuestionContext {
-            label: ContextLabel::new("record"),
-            body: ContextBody::new("content-addressed-preimage"),
+            context_label: ContextLabel::new("record"),
+            context_body: ContextBody::new("content-addressed-preimage"),
         }],
     )
 }
 
 fn approval_question() -> ApprovalQuestion {
     ApprovalQuestion {
-        identifier: QuestionIdentifier::new("question-1"),
-        proposal: question_proposal(),
+        question_identifier: QuestionIdentifier::new("question-1"),
+        question_proposal: question_proposal(),
     }
 }
 
@@ -34,8 +34,8 @@ fn interface_state_readers_expose_wrapped_fields() {
         StatusText::new("waiting"),
         Some(NotificationText::new("new-question")),
         vec![PaneContent {
-            pane: PaneLabel::new("approval"),
-            body: ContextBody::new("question-context"),
+            pane_label: PaneLabel::new("approval"),
+            context_body: ContextBody::new("question-context"),
         }],
         vec![question.clone()],
         CriomeAccess::ReadWrite,
@@ -46,7 +46,7 @@ fn interface_state_readers_expose_wrapped_fields() {
         "new-question"
     );
     assert_eq!(state.panes().len(), 1);
-    assert_eq!(state.panes()[0].pane.as_str(), "approval");
+    assert_eq!(state.panes()[0].pane_label.as_str(), "approval");
     assert_eq!(state.pending_questions(), std::slice::from_ref(&question));
 }
 
@@ -54,14 +54,14 @@ fn interface_state_readers_expose_wrapped_fields() {
 fn pending_question_projection_reader_matches_full_projection_reader() {
     let question = approval_question();
     let pending_projection = ProjectedInterfaceState {
-        revision: RevisionCounter::new(8),
-        projection: InterfaceProjection::PendingQuestionsProjection(
+        revision_counter: RevisionCounter::new(8),
+        interface_projection: InterfaceProjection::PendingQuestionsProjection(
             PendingQuestionsView::from_questions(vec![question.clone()]),
         ),
     };
     let full_projection = ProjectedInterfaceState {
-        revision: RevisionCounter::new(9),
-        projection: InterfaceProjection::FullProjection(InterfaceState::new(
+        revision_counter: RevisionCounter::new(9),
+        interface_projection: InterfaceProjection::FullProjection(InterfaceState::new(
             RevisionCounter::new(9),
             StatusText::new("waiting"),
             None,
@@ -84,14 +84,14 @@ fn pending_question_projection_reader_matches_full_projection_reader() {
 #[test]
 fn non_question_projections_have_empty_question_readers() {
     let status_projection = ProjectedInterfaceState {
-        revision: RevisionCounter::new(10),
-        projection: InterfaceProjection::StatusProjection(StatusText::new("waiting")),
+        revision_counter: RevisionCounter::new(10),
+        interface_projection: InterfaceProjection::StatusProjection(StatusText::new("waiting")),
     };
     let notification_projection = ProjectedInterfaceState {
-        revision: RevisionCounter::new(11),
-        projection: InterfaceProjection::NotificationProjection(NotificationSlice::Present(
-            NotificationText::new("new-question"),
-        )),
+        revision_counter: RevisionCounter::new(11),
+        interface_projection: InterfaceProjection::NotificationProjection(
+            NotificationSlice::Present(NotificationText::new("new-question")),
+        ),
     };
 
     assert!(status_projection.pending_questions().is_empty());
@@ -110,9 +110,9 @@ fn question_proposal_readers_expose_optional_answer_and_context() {
         "approve"
     );
     assert_eq!(proposal.context().len(), 1);
-    assert_eq!(proposal.context()[0].label.as_str(), "record");
+    assert_eq!(proposal.context()[0].context_label.as_str(), "record");
     assert_eq!(
-        proposal.context()[0].body.as_str(),
+        proposal.context()[0].context_body.as_str(),
         "content-addressed-preimage"
     );
 }
