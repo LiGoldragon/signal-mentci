@@ -1,8 +1,6 @@
 use std::{env, path::PathBuf};
 
-use schema_rust::build::{
-    CargoSchemaMetadata, DependencySchema, GenerationDriver, GenerationPlan,
-};
+use schema_rust::build::{CargoSchemaMetadata, DependencySchema, GenerationDriver, GenerationPlan};
 
 fn main() {
     SchemaBuild::from_environment().run();
@@ -26,12 +24,12 @@ impl SchemaBuild {
         CargoSchemaMetadata::new("signal-mentci").emit_schema_directory(&self.crate_root);
 
         let ordinary_signal =
-            DependencySchema::from_cargo_metadata("signal-criome", "signal-criome", "0.4.0")
+            DependencySchema::from_cargo_metadata("signal-criome", "signal-criome", "0.12.0")
                 .expect("read signal-criome schema metadata")
                 .expect("signal-criome schema directory exposed via DEP_SIGNAL_CRIOME_SCHEMA_DIR");
 
         GenerationDriver::new(
-            GenerationPlan::wire_contract(&self.crate_root, "signal-mentci", "0.2.0")
+            GenerationPlan::wire_contract(&self.crate_root, "signal-mentci", "0.3.0")
                 .with_dependency_schema(ordinary_signal),
         )
         .generate()

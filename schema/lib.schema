@@ -1,151 +1,45 @@
-;; signal-mentci — the ordinary working wire contract for the mentci
-;; programmable-UI daemon. Wire-only: schema-emitted rkyv plus the optional
-;; NOTA codec on the signal-frame request/reply/stream envelope. No daemon,
-;; actor runtime, transport, database, or rendering implementation — those
-;; live in the mentci daemon (mentci-egui / mentci-lib) and its thin clients.
-;; SELF-CONTAINED VOCABULARY.
-;;
-;; Architecture (Spirit 7x5z): mentci is a state-bearing programmable-UI
-;; daemon AND the criome approval surface. The daemon holds the canonical
-;; interface state; the UI changes if and only if daemon state changes.
-;; Clients — TUI, NOTA CLI, editor pane, status bar, notifications — are THIN
-;; renderers and subscribers. Agentic flows push questions, updates, and
-;; subscriptions INTO mentci. The criome EscalateToPsyche approval (Spirit
-;; gc0n: the dead-lettered hole mentci fills) is one use of this surface.
-;;
-;; This contract is the programmable-UI surface: a question / update push, a
-;; filtered state subscription, a verdict, and an edited-answer proposal. The
-;; request roster:
-;;   PresentQuestion      — push an approval question proposal into the daemon;
-;;                          the DAEMON mints the QuestionIdentifier, never the
-;;                          client (operator 421 §2). PresentQuestion carries a
-;;                          QuestionProposal with NO id; the reply returns the
-;;                          minted id.
-;;   PushUpdate           — push a programmable interface mutation
-;;   ObserveInterfaceState — open the canonical-state subscription stream with
-;;                          an interest/projection filter; the DAEMON mints the
-;;                          SubscriptionToken (operator 421 §3); notification
-;;                          clients receive a PROJECTED InterfaceState by
-;;                          default, not the full UI state (operator 421 §4).
-;;   AnswerQuestion       — submit a psyche verdict on a pending question, over
-;;                          the CLOSED ApprovalDecision set.
-;;   ProposeEditedAnswer  — "author your own answer" done correctly (operator
-;;                          421 / Q2): editing the suggested answer produces a
-;;                          NEW typed proposal object submitted through the
-;;                          NORMAL authorization path; criome approves THAT
-;;                          object's canonical digest, never a loose string.
-;;   RetractInterfaceObservation — close a subscription by its daemon token.
-;;
-;; Q2 RESOLVED (psyche correction + operator 421). The criome authorization
-;; model is settled: criome only authorizes objects submitted FOR
-;; authorization, never mints objects from a verdict side-channel; a contract's
-;; answers are within a CLOSED SET. So the mentci verdict is CLOSED:
-;;   ApprovalDecision = exactly [ApproveSuggestedAnswer Reject Defer]
-;; The held-out free-text PendingAnswer / Answer variant is DELETED — it was
-;; only ever a PoC stub for the fake signer and does not belong in the
-;; contract. Editing the suggested answer is NOT a verdict variant; it is a
-;; separate ProposeEditedAnswer request carrying a typed AnswerProposal that
-;; re-enters the normal authorization path as a new admitted object.
-;;
-;; CROSS-IMPORT (Woe 4): the criome ApprovalSource origin now imports
-;; AuthorizationRequestSlot from signal-criome via the single-colon path
-;; form (signal-criome:lib:AuthorizationRequestSlot) — signal-criome lowers
-;; cleanly under current main, so the grammar blocker named here before is
-;; gone. The standard socket connection-point (Spirit eaf7) still declares a
-;; local stand-in marked  ;; (cross-import target: signal-standard)  pending
-;; that crate's cross-import.
-;;
-;; GRAMMAR (current schema main, past abae95f). The positional
-;; struct-field grammar uses explicit field roles: a field whose name differs
-;; from its type is written field.Type (dot form); a field whose name equals
-;; the snake-case of its type is written as the bare PascalCase type (a
-;; redundant explicit role is a RedundantExplicitFieldRole error); a
-;; composite / optional field carries its role as a dot-bound field name,
-;; FieldRole.(Vector X) / FieldRole.(Optional X), whose snake-case becomes
-;; the field name. The retired two-atom  field Type  pair no longer lowers.
-
-;; -------------------------------------------------------------------
-;; Cross-import from signal-criome (single-colon path form). The parked
-;; criome authorization slot is one shared type identity across the
-;; approval surface; ApprovalSource::CriomeEscalation carries it so a closed
-;; verdict keys straight back to criome by that slot, with no stringly
-;; round-trip (Spirit 7x5z / t00s). Mirrors meta-signal-criome's import.
-;; -------------------------------------------------------------------
+;; signal-mentci — ordinary Mentci programmable-UI wire contract.
+;; Schema 0.3 keeps the contract as six dotted roots: imports, inputs, outputs,
+;; types, generics, and implementations. The crate owns vocabulary only.
 {
-  AuthorizationRequestSlot signal-criome:lib:AuthorizationRequestSlot
-  ParkedRequestIdentifier signal-criome:lib:ParkedRequestIdentifier
-  InterceptPolicyIdentifier signal-criome:lib:InterceptPolicyIdentifier
-  InterceptPolicyProposal signal-criome:lib:InterceptPolicyProposal
-  InterceptPolicyCancellation signal-criome:lib:InterceptPolicyCancellation
-  InterceptPolicy signal-criome:lib:InterceptPolicy
-  ActiveInterceptPolicies signal-criome:lib:ActiveInterceptPolicies
-  ParkedRequestQuery signal-criome:lib:ParkedRequestQuery
-  ParkedRequestSnapshot signal-criome:lib:ParkedRequestSnapshot
-  ParkedRequestAnswer signal-criome:lib:ParkedRequestAnswer
-  ParkedRequestResolution signal-criome:lib:ParkedRequestResolution
+  signal-criome.lib.[AuthorizationRequestSlot ParkedRequestIdentifier InterceptPolicyIdentifier InterceptPolicyProposal InterceptPolicyCancellation InterceptPolicy ActiveInterceptPolicies ParkedRequestQuery ParkedRequestSnapshot ParkedRequestAnswer ParkedRequestResolution]
 }
-
-[(PresentQuestion QuestionProposal)
- (PushUpdate InterfaceUpdate)
- (ObserveInterfaceState InterfaceStateObservation opens InterfaceStateStream)
- (AnswerQuestion ApprovalVerdict)
- (ProposeEditedAnswer AnswerProposal)
- (CreateInterceptPolicy InterceptPolicyProposal)
- (ReplaceInterceptPolicy InterceptPolicyProposal)
- (CancelInterceptPolicy InterceptPolicyCancellation)
- (ListInterceptPolicies InterceptPolicyObservation)
- (FetchParkedRequests ParkedRequestQuery)
- (AnswerParkedRequest ParkedRequestAnswer)
- (RetractInterfaceObservation SubscriptionToken)]
-
-[(QuestionPresented QuestionPresented)
- (UpdateAccepted UpdateAccepted)
- (InterfaceObservationOpened InterfaceObservationOpened)
- (VerdictAccepted VerdictAccepted)
- (AnswerProposalAdmitted AnswerProposalAdmitted)
- (InterceptPolicyCreated InterceptPolicy)
- (InterceptPolicyReplaced InterceptPolicy)
- (InterceptPolicyCancelled InterceptPolicyIdentifier)
- (InterceptPoliciesListed ActiveInterceptPolicies)
- (ParkedRequestsFetched ParkedRequestSnapshot)
- (ParkedRequestAnswered ParkedRequestResolution)
- (InterfaceObservationRetracted InterfaceObservationRetracted)
- (Rejection Rejection)]
-
+[PresentQuestion.QuestionProposal PushUpdate.InterfaceUpdate ObserveInterfaceState.InterfaceStateObservation AnswerQuestion.ApprovalVerdict ProposeEditedAnswer.AnswerProposal CreateInterceptPolicy.InterceptPolicyProposal ReplaceInterceptPolicy.InterceptPolicyProposal CancelInterceptPolicy.InterceptPolicyCancellation ListInterceptPolicies.InterceptPolicyObservation FetchParkedRequests.ParkedRequestQuery AnswerParkedRequest.ParkedRequestAnswer RetractInterfaceObservation.SubscriptionToken]
+[QuestionAccepted.QuestionPresented UpdateApplied.UpdateAccepted InterfaceObservationStarted.InterfaceObservationOpened VerdictRecorded.VerdictAccepted AnswerProposalAccepted.AnswerProposalAdmitted InterceptPolicyCreated.InterceptPolicy InterceptPolicyReplaced.InterceptPolicy InterceptPolicyCancelled.InterceptPolicyIdentifier InterceptPoliciesListed.ActiveInterceptPolicies ParkedRequestsFetched.ParkedRequestSnapshot ParkedRequestAnswered.ParkedRequestResolution InterfaceObservationClosed.InterfaceObservationRetracted RequestRejected.Rejection]
 {
   ;; -------------------------------------------------------------------
   ;; Primitive newtypes. Distinct newtypes, not transparent aliases
   ;; (Spirit qz6j: aliases offer no correctness and are not used).
   ;; -------------------------------------------------------------------
-  QuestionIdentifier String
-  ProposalIdentifier String
-  SubscriptionToken String
-  SubscriberName String
-  PromptText String
-  AnswerText String
-  ExplanationText String
-  ContextLabel String
-  ContextBody String
-  UpdateIdentifier String
-  ComponentLabel String
-  PaneLabel String
-  StatusText String
-  NotificationText String
-  TimestampNanos Integer
-  RevisionCounter Integer
-  ProposalDigest String
-  SocketPath Path
+  QuestionIdentifier.String
+  ProposalIdentifier.String
+  SubscriptionToken.String
+  SubscriberName.String
+  PromptText.String
+  AnswerText.String
+  ExplanationText.String
+  ContextLabel.String
+  ContextBody.String
+  UpdateIdentifier.String
+  ComponentLabel.String
+  PaneLabel.String
+  StatusText.String
+  NotificationText.String
+  TimestampNanos.Integer
+  RevisionCounter.Integer
+  ProposalDigest.String
+  SocketPath.Path
 
   ;; -------------------------------------------------------------------
   ;; ApprovalSource — where a pending question originates. The criome
-  ;; EscalateToPsyche escalation is the motivating case (Spirit gc0n); its
+  ;; EscalateToPsyche escalation is the motivating case Spirit.gc0n; its
   ;; CriomeEscalation variant carries the parked criome AuthorizationRequestSlot
   ;; (imported from signal-criome) so the closed verdict routes straight back
   ;; to criome by that slot — no daemon-private side table, no stringly key.
   ;; -------------------------------------------------------------------
-  ApprovalSource [
-    (CriomeEscalation AuthorizationRequestSlot)
-    (CriomeInterception ParkedRequestIdentifier)
+  ApprovalSource.[
+    CriomeEscalation.AuthorizationRequestSlot
+    CriomeInterception.ParkedRequestIdentifier
     AgentQuestion
     LocalSystemPrompt
   ]
@@ -155,9 +49,9 @@
   ;; can show alongside the prompt (the request being escalated, the
   ;; surrounding diff, the agent's working note).
   ;; -------------------------------------------------------------------
-  QuestionContext {
-    label.ContextLabel
-    body.ContextBody
+  QuestionContext.{
+    ContextLabel
+    ContextBody
   }
 
   ;; -------------------------------------------------------------------
@@ -168,12 +62,12 @@
   ;; is the question content minus identity: source, prompt, an optional
   ;; suggested answer, an explanation, and zero or more context entries.
   ;; -------------------------------------------------------------------
-  QuestionProposal {
-    source.ApprovalSource
-    prompt.PromptText
-    SuggestedAnswer.(Optional AnswerText)
-    explanation.ExplanationText
-    Context.(Vector QuestionContext)
+  QuestionProposal.{
+    ApprovalSource
+    PromptText
+    Optional.AnswerText
+    ExplanationText
+    Vector.QuestionContext
   }
 
   ;; -------------------------------------------------------------------
@@ -182,9 +76,9 @@
   ;; appears in the projected InterfaceState; clients render it but never
   ;; mint its identity.
   ;; -------------------------------------------------------------------
-  ApprovalQuestion {
-    identifier.QuestionIdentifier
-    proposal.QuestionProposal
+  ApprovalQuestion.{
+    QuestionIdentifier
+    QuestionProposal
   }
 
   ;; -------------------------------------------------------------------
@@ -199,7 +93,7 @@
   ;; different answer goes through ProposeEditedAnswer (a new admitted
   ;; object), then this same closed verdict approves THAT object.
   ;; -------------------------------------------------------------------
-  ApprovalDecision [
+  ApprovalDecision.[
     ApproveSuggestedAnswer
     Reject
     Defer
@@ -213,7 +107,7 @@
   ;; controls. A write daemon projects ReadWrite: clients can answer; the
   ;; daemon routes the verdict to criome by the parked slot (daemon-routing).
   ;; -------------------------------------------------------------------
-  CriomeAccess [
+  CriomeAccess.[
     ReadOnly
     ReadWrite
   ]
@@ -223,10 +117,10 @@
   ;; closed decision, and who answered (the subscriber acting as the psyche
   ;; surface).
   ;; -------------------------------------------------------------------
-  ApprovalVerdict {
-    question.QuestionIdentifier
-    decision.ApprovalDecision
-    answered_by.SubscriberName
+  ApprovalVerdict.{
+    QuestionIdentifier
+    ApprovalDecision
+    SubscriberName
   }
 
   ;; -------------------------------------------------------------------
@@ -241,13 +135,13 @@
   ;; to/from NOTA at the human surface (everything here is NOTA — no free
   ;; text anywhere).
   ;; -------------------------------------------------------------------
-  AnswerProposal {
-    question.QuestionIdentifier
-    body.AnswerText
-    authored_by.SubscriberName
+  AnswerProposal.{
+    QuestionIdentifier
+    AnswerText
+    SubscriberName
   }
 
-  InterceptPolicyObservation { }
+  InterceptPolicyObservation.{ }
 
   ;; -------------------------------------------------------------------
   ;; InterfaceUpdate — a programmable mutation pushed into the daemon's
@@ -255,23 +149,23 @@
   ;; change propagates to every thin subscriber: the UI changes iff the
   ;; daemon state changes (Spirit 7x5z).
   ;; -------------------------------------------------------------------
-  InterfaceUpdate {
-    identifier.UpdateIdentifier
-    mutation.InterfaceMutation
+  InterfaceUpdate.{
+    UpdateIdentifier
+    InterfaceMutation
   }
 
-  InterfaceMutation [
-    (SetStatus StatusText)
-    (PostNotification NotificationText)
-    (SetPaneContent PaneContent)
-    (ClearPane PaneLabel)
-    (PresentApprovalQuestion QuestionProposal)
-    (WithdrawApprovalQuestion QuestionIdentifier)
+  InterfaceMutation.[
+    SetStatus.StatusText
+    PostNotification.NotificationText
+    SetPaneContent.PaneContent
+    ClearPane.PaneLabel
+    PresentApprovalQuestion.QuestionProposal
+    WithdrawApprovalQuestion.QuestionIdentifier
   ]
 
-  PaneContent {
-    pane.PaneLabel
-    body.ContextBody
+  PaneContent.{
+    PaneLabel
+    ContextBody
   }
 
   ;; -------------------------------------------------------------------
@@ -281,12 +175,12 @@
   ;; pending approval questions. Clients with FullInterfaceState interest
   ;; render exactly this; filtered clients render the projection below.
   ;; -------------------------------------------------------------------
-  InterfaceState {
-    revision.RevisionCounter
-    status.StatusText
-    Notification.(Optional NotificationText)
-    Panes.(Vector PaneContent)
-    PendingQuestions.(Vector ApprovalQuestion)
+  InterfaceState.{
+    RevisionCounter
+    StatusText
+    Optional.NotificationText
+    Vector.PaneContent
+    Vector.ApprovalQuestion
     CriomeAccess
   }
 
@@ -297,11 +191,11 @@
   ;; full pending-question context by default; it asks for StatusOnly or
   ;; Notifications and the daemon delivers only that slice.
   ;;   FullInterfaceState — the whole InterfaceState (TUI / editor pane)
-  ;;   StatusOnly         — the status line + revision only (status bar)
+  ;;   StatusOnly         — the status line + revision only status.bar
   ;;   Notifications      — the current notification + revision (popup / email)
-  ;;   PendingQuestions   — the pending-question queue + revision (approval UI)
+  ;;   PendingQuestions   — the pending-question queue + revision approval.UI
   ;; -------------------------------------------------------------------
-  InterfaceInterest [
+  InterfaceInterest.[
     FullInterfaceState
     StatusOnly
     Notifications
@@ -313,9 +207,9 @@
   ;; it does NOT supply a token. The DAEMON mints the SubscriptionToken
   ;; (operator 421 §3) and returns it in the opened stream so one client can
   ;; hold many distinct subscriptions, reconnect, or change interest.
-  InterfaceStateObservation {
-    subscriber.SubscriberName
-    interest.InterfaceInterest
+  InterfaceStateObservation.{
+    SubscriberName
+    InterfaceInterest
   }
 
   ;; -------------------------------------------------------------------
@@ -326,48 +220,48 @@
   ;; it asked for it. This is the InterfaceStateSnapshot reply payload and
   ;; the stream's opened-with snapshot.
   ;; -------------------------------------------------------------------
-  ProjectedInterfaceState {
-    revision.RevisionCounter
-    projection.InterfaceProjection
+  ProjectedInterfaceState.{
+    RevisionCounter
+    InterfaceProjection
   }
 
   ;; ObserveInterfaceState opens a subscription stream. The daemon mints the
   ;; token and returns it with the first projected state so the client can later
   ;; retract the observation.
-  InterfaceObservationOpened {
-    token.SubscriptionToken
-    state.ProjectedInterfaceState
+  InterfaceObservationOpened.{
+    SubscriptionToken
+    ProjectedInterfaceState
   }
 
   ;; NotificationSlice — the current-notification slice a NotificationProjection
-  ;; carries. Strict positional NOTA forbids an (Optional T) variant payload, so
+  ;; carries. Strict positional NOTA forbids an Optional.T variant payload, so
   ;; the "no current notification" case is the explicit Empty member and a
   ;; present notification carries its text.
-  NotificationSlice [
+  NotificationSlice.[
     Empty
-    (Present NotificationText)
+    Present.NotificationText
   ]
-  InterfaceProjection [
-    (FullProjection InterfaceState)
-    (StatusProjection StatusText)
-    (NotificationProjection NotificationSlice)
-    (PendingQuestionsProjection PendingQuestionsView)
+  InterfaceProjection.[
+    FullProjection.InterfaceState
+    StatusProjection.StatusText
+    NotificationProjection.NotificationSlice
+    PendingQuestionsProjection.PendingQuestionsView
   ]
 
-  PendingQuestionsView {
-    VisibleQuestions.(Vector ApprovalQuestion)
+  PendingQuestionsView.{
+    Vector.ApprovalQuestion
   }
 
   ;; -------------------------------------------------------------------
-  ;; StandardSocket — the typed connection point (Spirit eaf7). A typed
+  ;; StandardSocket — the typed connection point Spirit.eaf7. A typed
   ;; Unix-socket path is the local case; this is the mentci -> criome
   ;; standard socket, the motivating case. Declared local PENDING the
   ;; signal-standard crate.
   ;; (cross-import target: signal-standard — the standard connection-point
   ;;  type; deferred while signal-standard is not yet a crate.)
   ;; -------------------------------------------------------------------
-  StandardSocket {
-    path.SocketPath
+  StandardSocket.{
+    SocketPath
   }
 
   ;; -------------------------------------------------------------------
@@ -377,39 +271,39 @@
   ;; QuestionPresented — the daemon admitted the proposal and MINTED its
   ;; identifier; the client learns the id here (operator 421 §2). Carries the
   ;; new question id and the revision the admit bumped.
-  QuestionPresented {
-    question.QuestionIdentifier
-    revision.RevisionCounter
-    accepted_at.TimestampNanos
+  QuestionPresented.{
+    QuestionIdentifier
+    RevisionCounter
+    TimestampNanos
   }
 
-  UpdateAccepted {
-    identifier.UpdateIdentifier
-    revision.RevisionCounter
+  UpdateAccepted.{
+    UpdateIdentifier
+    RevisionCounter
   }
 
-  VerdictAccepted {
-    question.QuestionIdentifier
-    decision.ApprovalDecision
-    accepted_at.TimestampNanos
+  VerdictAccepted.{
+    QuestionIdentifier
+    ApprovalDecision
+    TimestampNanos
   }
 
   ;; AnswerProposalAdmitted — the daemon admitted an edited-answer proposal as
   ;; a NEW object on the normal authorization path. It mints the proposal id,
   ;; computes the canonical digest criome will later approve, and returns
   ;; both. The verdict that follows approves THIS digest, not a loose string.
-  AnswerProposalAdmitted {
-    proposal.ProposalIdentifier
-    question.QuestionIdentifier
-    digest.ProposalDigest
-    revision.RevisionCounter
+  AnswerProposalAdmitted.{
+    ProposalIdentifier
+    QuestionIdentifier
+    ProposalDigest
+    RevisionCounter
   }
 
-  InterfaceObservationRetracted {
-    token.SubscriptionToken
+  InterfaceObservationRetracted.{
+    SubscriptionToken
   }
 
-  RejectionReason [
+  RejectionReason.[
     UnknownQuestion
     QuestionAlreadyAnswered
     MalformedRequest
@@ -418,19 +312,11 @@
     UnauthorizedProjection
   ]
 
-  Rejection {
-    reason.RejectionReason
+  Rejection.{
+    RejectionReason
   }
 
-  ;; -------------------------------------------------------------------
-  ;; The stream. ObserveInterfaceState opens InterfaceStateStream, which
-  ;; opens with a ProjectedInterfaceState snapshot and pushes MentciEvent
-  ;; frames that belong to it. Keyed and closed by the daemon-minted
-  ;; SubscriptionToken.
-  ;; -------------------------------------------------------------------
-  MentciEvent [
-    (InterfaceStateChanged ProjectedInterfaceState belongs InterfaceStateStream)
-  ]
 
-  InterfaceStateStream (Stream { token.SubscriptionToken opened.ProjectedInterfaceState event.MentciEvent close.SubscriptionToken })
 }
+{}
+{}

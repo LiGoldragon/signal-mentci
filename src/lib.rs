@@ -13,8 +13,8 @@ pub use schema::lib::*;
 
 pub type MentciRequest = Input;
 pub type MentciReply = Output;
-pub type MentciFrame = signal_frame::StreamingFrame<Input, Output, MentciEvent>;
-pub type MentciFrameBody = signal_frame::StreamingFrameBody<Input, Output, MentciEvent>;
+pub type MentciFrame = signal_frame::ExchangeFrame<Input, Output>;
+pub type MentciFrameBody = signal_frame::ExchangeFrameBody<Input, Output>;
 pub type MentciReplyEnvelope = ReplyEnvelope;
 pub type MentciRequestBuilder = RequestBuilder;
 pub type MentciOperationKind = InputRoute;
@@ -89,11 +89,11 @@ impl QuestionProposal {
         context: Vec<QuestionContext>,
     ) -> Self {
         Self {
-            source,
-            prompt,
-            suggested_answer: SuggestedAnswer::new(suggested_answer),
-            explanation,
-            context: Context::new(context),
+            approval_source: source,
+            prompt_text: prompt,
+            optional_answer_text: suggested_answer,
+            explanation_text: explanation,
+            question_context_vector: context,
         }
     }
 }
@@ -108,11 +108,11 @@ impl InterfaceState {
         criome_access: CriomeAccess,
     ) -> Self {
         Self {
-            revision,
-            status,
-            notification: Notification::new(notification),
-            panes: Panes::new(panes),
-            pending_questions: PendingQuestions::new(pending_questions),
+            revision_counter: revision,
+            status_text: status,
+            optional_notification_text: notification,
+            pane_content_vector: panes,
+            approval_question_vector: pending_questions,
             criome_access,
         }
     }
@@ -121,17 +121,17 @@ impl InterfaceState {
     /// `pub(crate)`-wrapped field so consumers (mentci-lib's shared
     /// observability model) can project state they did not build.
     pub fn notification(&self) -> Option<&NotificationText> {
-        self.notification.payload().as_ref()
+        self.optional_notification_text.as_ref()
     }
 
     /// The open panes.
     pub fn panes(&self) -> &[PaneContent] {
-        self.panes.payload().as_slice()
+        self.pane_content_vector.as_slice()
     }
 
     /// The pending approval questions in this canonical state.
     pub fn pending_questions(&self) -> &[ApprovalQuestion] {
-        self.pending_questions.payload().as_slice()
+        self.approval_question_vector.as_slice()
     }
 
     /// The daemon's criome access level, mirrored into canonical state so a
@@ -156,13 +156,13 @@ impl NotificationSlice {
 
 impl PendingQuestionsView {
     pub fn from_questions(questions: Vec<ApprovalQuestion>) -> Self {
-        Self::new(VisibleQuestions::new(questions))
+        Self::new(questions)
     }
 
     /// The questions a `PendingQuestions`-interest subscriber is allowed to
     /// see. Reader for the `pub(crate)`-wrapped inner.
     pub fn questions(&self) -> &[ApprovalQuestion] {
-        self.payload().payload().as_slice()
+        self.payload().as_slice()
     }
 }
 
@@ -174,7 +174,7 @@ impl ProjectedInterfaceState {
     /// reader the shared observability model needs to drive the approval
     /// cursor regardless of which interest opened the stream.
     pub fn pending_questions(&self) -> &[ApprovalQuestion] {
-        match &self.projection {
+        match &self.interface_projection {
             InterfaceProjection::FullProjection(state) => state.pending_questions(),
             InterfaceProjection::PendingQuestionsProjection(view) => view.questions(),
             InterfaceProjection::StatusProjection(_)
@@ -188,7 +188,7 @@ impl ProjectedInterfaceState {
     /// client on a narrow interest learns no mode (`None`) and defaults to
     /// observation-only.
     pub fn criome_access(&self) -> Option<CriomeAccess> {
-        match &self.projection {
+        match &self.interface_projection {
             InterfaceProjection::FullProjection(state) => Some(state.criome_access()),
             InterfaceProjection::StatusProjection(_)
             | InterfaceProjection::NotificationProjection(_)
@@ -201,12 +201,12 @@ impl QuestionProposal {
     /// The suggested answer, if the asking agent supplied one. Reader for the
     /// `pub(crate)`-wrapped field.
     pub fn suggested_answer(&self) -> Option<&AnswerText> {
-        self.suggested_answer.payload().as_ref()
+        self.optional_answer_text.as_ref()
     }
 
     /// The context entries attached to this question.
     pub fn context(&self) -> &[QuestionContext] {
-        self.context.payload().as_slice()
+        self.question_context_vector.as_slice()
     }
 }
 

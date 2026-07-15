@@ -18,12 +18,12 @@ use signal_mentci::{
     ApprovalSource, ApprovalVerdict, AuthorizationRequestSlot, ContextBody, ContextLabel,
     CriomeAccess, ExplanationText, InterceptPolicyObservation, InterfaceInterest,
     InterfaceMutation, InterfaceObservationOpened, InterfaceObservationRetracted,
-    InterfaceProjection, InterfaceState, InterfaceStateObservation, MentciEvent,
-    MentciFrame as Frame, MentciFrameBody as FrameBody, MentciReply, MentciRequest,
-    NotificationText, PaneContent, PaneLabel, PendingQuestionsView, ProjectedInterfaceState,
-    PromptText, ProposalDigest, ProposalIdentifier, QuestionContext, QuestionIdentifier,
-    QuestionPresented, QuestionProposal, Rejection, RejectionReason, RevisionCounter, StatusText,
-    SubscriberName, SubscriptionToken, TimestampNanos, UpdateAccepted, UpdateIdentifier,
+    InterfaceProjection, InterfaceState, InterfaceStateObservation, MentciFrame as Frame,
+    MentciFrameBody as FrameBody, MentciReply, MentciRequest, NotificationText, PaneContent,
+    PaneLabel, PendingQuestionsView, ProjectedInterfaceState, PromptText, ProposalDigest,
+    ProposalIdentifier, QuestionContext, QuestionIdentifier, QuestionPresented, QuestionProposal,
+    Rejection, RejectionReason, RevisionCounter, StatusText, SubscriberName, SubscriptionToken,
+    TimestampNanos, UpdateAccepted, UpdateIdentifier, VerdictAccepted,
 };
 
 fn exchange() -> ExchangeIdentifier {
@@ -41,23 +41,23 @@ fn question_proposal() -> QuestionProposal {
         Some(AnswerText::new("approve")),
         ExplanationText::new("agent-proposed-answer"),
         vec![QuestionContext {
-            label: ContextLabel::new("record"),
-            body: ContextBody::new("content-addressed-preimage"),
+            context_label: ContextLabel::new("record"),
+            context_body: ContextBody::new("content-addressed-preimage"),
         }],
     )
 }
 
 fn approval_question() -> ApprovalQuestion {
     ApprovalQuestion {
-        identifier: QuestionIdentifier::new("question-1"),
-        proposal: question_proposal(),
+        question_identifier: QuestionIdentifier::new("question-1"),
+        question_proposal: question_proposal(),
     }
 }
 
 fn projected_state() -> ProjectedInterfaceState {
     ProjectedInterfaceState {
-        revision: RevisionCounter::new(2),
-        projection: InterfaceProjection::PendingQuestionsProjection(
+        revision_counter: RevisionCounter::new(2),
+        interface_projection: InterfaceProjection::PendingQuestionsProjection(
             PendingQuestionsView::from_questions(vec![approval_question()]),
         ),
     }
@@ -67,7 +67,7 @@ fn mentci_session_slot() -> MentciSessionSlot {
     MentciSessionSlot::new("mentci-session-1")
 }
 
-fn intercept_policy_identifier() -> InterceptPolicyIdentifier {
+fn policy_identifier() -> InterceptPolicyIdentifier {
     InterceptPolicyIdentifier::new("intercept-policy-1")
 }
 
@@ -75,132 +75,72 @@ fn parked_request_identifier() -> ParkedRequestIdentifier {
     ParkedRequestIdentifier::new("parked-request-1")
 }
 
-fn spirit_process_key() -> SpiritProcessKey {
+fn process_key() -> SpiritProcessKey {
     SpiritProcessKey::new("spirit-process-main")
 }
 
 fn intercept_target() -> InterceptTargetSelector {
-    InterceptTargetSelector::new(spirit_process_key())
+    InterceptTargetSelector::new(process_key())
 }
 
-fn spirit_operation_names() -> SpiritOperationNames {
+fn operation_names() -> SpiritOperationNames {
     SpiritOperationNames::from_names(vec![SpiritOperationName::new("Record")])
 }
 
-fn intercept_policy_proposal() -> InterceptPolicyProposal {
+fn policy_proposal() -> InterceptPolicyProposal {
     InterceptPolicyProposal {
-        session_slot: mentci_session_slot(),
-        target: intercept_target(),
-        spirit_operation_names: spirit_operation_names(),
-        duration: PolicyDurationNanos::new(100),
+        mentci_session_slot: mentci_session_slot(),
+        intercept_target_selector: intercept_target(),
+        spirit_operation_names: operation_names(),
+        policy_duration_nanos: PolicyDurationNanos::new(100),
         expiry_action: ExpiryAction::AutoApprove,
-        priority: PolicyPriority::new(10),
-        overlap_mode: PolicyOverlapMode::RejectSamePriorityOverlap,
+        policy_priority: PolicyPriority::new(10),
+        policy_overlap_mode: PolicyOverlapMode::RejectSamePriorityOverlap,
     }
 }
 
-fn intercept_policy() -> InterceptPolicy {
+fn policy() -> InterceptPolicy {
     InterceptPolicy {
-        identifier: intercept_policy_identifier(),
-        session_slot: mentci_session_slot(),
-        target: intercept_target(),
-        spirit_operation_names: spirit_operation_names(),
-        window: InterceptPolicyWindow {
+        intercept_policy_identifier: policy_identifier(),
+        mentci_session_slot: mentci_session_slot(),
+        intercept_target_selector: intercept_target(),
+        spirit_operation_names: operation_names(),
+        intercept_policy_window: InterceptPolicyWindow {
             starts_at: CriomeTimestampNanos::new(20),
             expires_at: CriomeTimestampNanos::new(120),
         },
         expiry_action: ExpiryAction::AutoApprove,
-        priority: PolicyPriority::new(10),
-    }
-}
-
-fn active_intercept_policies() -> ActiveInterceptPolicies {
-    ActiveInterceptPolicies::from_policies(vec![intercept_policy()])
-}
-
-fn parked_request_query() -> ParkedRequestQuery {
-    ParkedRequestQuery {
-        session_slot: Some(mentci_session_slot()),
-        target: Some(intercept_target()),
-    }
-}
-
-fn parked_request_answer() -> ParkedRequestAnswer {
-    ParkedRequestAnswer {
-        identifier: parked_request_identifier(),
-        decision: ParkedRequestDecision::Approve,
-    }
-}
-
-fn parked_spirit_request() -> ParkedSpiritRequest {
-    ParkedSpiritRequest {
-        identifier: parked_request_identifier(),
-        matched_policy: intercept_policy_identifier(),
-        session_slot: mentci_session_slot(),
-        context: SpiritAuthorizationContext {
-            operation_name: SpiritOperationName::new("Record"),
-            raw_payload: RawSpiritOperationPayload::new("(Record (...))"),
-            target_key: spirit_process_key(),
-        },
-        parked_at: CriomeTimestampNanos::new(25),
-        expires_at: CriomeTimestampNanos::new(120),
-        expiry_action: ExpiryAction::AutoApprove,
+        policy_priority: PolicyPriority::new(10),
     }
 }
 
 fn parked_request_snapshot() -> ParkedRequestSnapshot {
-    ParkedRequestSnapshot::from_requests(vec![parked_spirit_request()])
-}
-
-fn parked_request_resolution() -> ParkedRequestResolution {
-    ParkedRequestResolution {
-        identifier: parked_request_identifier(),
-        matched_policy: intercept_policy_identifier(),
-        outcome: ParkedRequestOutcome::Approved,
-        audit_source: ApprovalAuditSource::Manual,
-        resolved_at: CriomeTimestampNanos::new(30),
-    }
-}
-
-fn assert_request_round_trips(request: MentciRequest) {
-    let frame = Frame::new(FrameBody::Request {
-        exchange: exchange(),
-        request: request.clone().into_request(),
-    });
-    let bytes = frame.encode_length_prefixed().expect("encode request");
-    let decoded = Frame::decode_length_prefixed(&bytes).expect("decode request");
-    match decoded.into_body() {
-        FrameBody::Request {
-            request: decoded_request,
-            ..
-        } => assert_eq!(decoded_request.payloads().head(), &request),
-        other => panic!("expected request frame, got {other:?}"),
-    }
-}
-
-fn assert_reply_round_trips(reply: MentciReply) {
-    let frame = Frame::new(FrameBody::Reply {
-        exchange: exchange(),
-        reply: Reply::committed(NonEmpty::single(SubReply::Ok(reply.clone()))),
-    });
-    let bytes = frame.encode_length_prefixed().expect("encode reply");
-    let decoded = Frame::decode_length_prefixed(&bytes).expect("decode reply");
-    match decoded.into_body() {
-        FrameBody::Reply {
-            reply: decoded_reply,
-            ..
-        } => match decoded_reply {
-            Reply::Accepted { per_operation, .. } => match per_operation.into_head() {
-                SubReply::Ok(payload) => assert_eq!(payload, reply),
-                other => panic!("expected accepted reply payload, got {other:?}"),
-            },
-            Reply::Rejected { reason } => panic!("unexpected rejected reply: {reason:?}"),
+    ParkedRequestSnapshot::from_requests(vec![ParkedSpiritRequest {
+        parked_request_identifier: parked_request_identifier(),
+        intercept_policy_identifier: policy_identifier(),
+        mentci_session_slot: mentci_session_slot(),
+        spirit_authorization_context: SpiritAuthorizationContext {
+            spirit_operation_name: SpiritOperationName::new("Record"),
+            raw_spirit_operation_payload: RawSpiritOperationPayload::new("(Record (...))"),
+            spirit_process_key: process_key(),
         },
-        other => panic!("expected reply frame, got {other:?}"),
+        parked_at: CriomeTimestampNanos::new(25),
+        expires_at: CriomeTimestampNanos::new(120),
+        expiry_action: ExpiryAction::AutoApprove,
+    }])
+}
+
+fn resolution() -> ParkedRequestResolution {
+    ParkedRequestResolution {
+        parked_request_identifier: parked_request_identifier(),
+        intercept_policy_identifier: policy_identifier(),
+        parked_request_outcome: ParkedRequestOutcome::Approved,
+        approval_audit_source: ApprovalAuditSource::Manual,
+        timestamp_nanos: CriomeTimestampNanos::new(30),
     }
 }
 
-fn assert_nota_round_trips<Value>(value: &Value)
+fn assert_nota_round_trip<Value>(value: &Value)
 where
     Value: NotaEncode + NotaDecode + PartialEq + std::fmt::Debug,
 {
@@ -209,186 +149,165 @@ where
     assert_eq!(&recovered, value);
 }
 
+fn assert_request_frame(request: MentciRequest) {
+    let frame = Frame::new(FrameBody::Request {
+        exchange: exchange(),
+        request: request.clone().into_request(),
+    });
+    let decoded = Frame::decode_length_prefixed(&frame.encode_length_prefixed().expect("encode"))
+        .expect("decode");
+    match decoded.into_body() {
+        FrameBody::Request {
+            request: decoded, ..
+        } => assert_eq!(decoded.payloads().head(), &request),
+        other => panic!("expected request frame, got {other:?}"),
+    }
+}
+
+fn assert_reply_frame(reply: MentciReply) {
+    let frame = Frame::new(FrameBody::Reply {
+        exchange: exchange(),
+        reply: Reply::committed(NonEmpty::single(SubReply::Ok(reply.clone()))),
+    });
+    let decoded = Frame::decode_length_prefixed(&frame.encode_length_prefixed().expect("encode"))
+        .expect("decode");
+    match decoded.into_body() {
+        FrameBody::Reply {
+            reply: Reply::Accepted { per_operation, .. },
+            ..
+        } => {
+            assert_eq!(per_operation.into_head(), SubReply::Ok(reply));
+        }
+        other => panic!("expected accepted reply frame, got {other:?}"),
+    }
+}
+
 #[test]
-fn request_variants_round_trip() {
+fn every_operation_round_trips_through_nota_and_exchange_frame() {
     let requests = [
         MentciRequest::PresentQuestion(question_proposal()),
         MentciRequest::PushUpdate(signal_mentci::InterfaceUpdate {
-            identifier: UpdateIdentifier::new("update-1"),
-            mutation: InterfaceMutation::SetStatus(StatusText::new("waiting")),
+            update_identifier: UpdateIdentifier::new("update-1"),
+            interface_mutation: InterfaceMutation::SetStatus(StatusText::new("waiting")),
         }),
         MentciRequest::ObserveInterfaceState(InterfaceStateObservation {
-            subscriber: SubscriberName::new("status-bar"),
-            interest: InterfaceInterest::StatusOnly,
+            subscriber_name: SubscriberName::new("status-bar"),
+            interface_interest: InterfaceInterest::StatusOnly,
         }),
         MentciRequest::AnswerQuestion(ApprovalVerdict {
-            question: QuestionIdentifier::new("question-1"),
-            decision: ApprovalDecision::ApproveSuggestedAnswer,
-            answered_by: SubscriberName::new("psyche"),
+            question_identifier: QuestionIdentifier::new("question-1"),
+            approval_decision: ApprovalDecision::ApproveSuggestedAnswer,
+            subscriber_name: SubscriberName::new("psyche"),
         }),
         MentciRequest::ProposeEditedAnswer(AnswerProposal {
-            question: QuestionIdentifier::new("question-1"),
-            body: AnswerText::new("replacement-nota-object"),
-            authored_by: SubscriberName::new("psyche"),
+            question_identifier: QuestionIdentifier::new("question-1"),
+            answer_text: AnswerText::new("replacement"),
+            subscriber_name: SubscriberName::new("psyche"),
         }),
-        MentciRequest::CreateInterceptPolicy(intercept_policy_proposal()),
-        MentciRequest::ReplaceInterceptPolicy(intercept_policy_proposal()),
-        MentciRequest::CancelInterceptPolicy(InterceptPolicyCancellation::new(
-            intercept_policy_identifier(),
-        )),
+        MentciRequest::CreateInterceptPolicy(policy_proposal()),
+        MentciRequest::ReplaceInterceptPolicy(policy_proposal()),
+        MentciRequest::CancelInterceptPolicy(InterceptPolicyCancellation::new(policy_identifier())),
         MentciRequest::ListInterceptPolicies(InterceptPolicyObservation::new()),
-        MentciRequest::FetchParkedRequests(parked_request_query()),
-        MentciRequest::AnswerParkedRequest(parked_request_answer()),
+        MentciRequest::FetchParkedRequests(ParkedRequestQuery {
+            optional_mentci_session_slot: Some(mentci_session_slot()),
+            optional_intercept_target_selector: Some(intercept_target()),
+        }),
+        MentciRequest::AnswerParkedRequest(ParkedRequestAnswer {
+            parked_request_identifier: parked_request_identifier(),
+            parked_request_decision: ParkedRequestDecision::Approve,
+        }),
         MentciRequest::RetractInterfaceObservation(SubscriptionToken::new("subscription-1")),
     ];
     for request in requests {
-        assert_request_round_trips(request.clone());
-        assert_nota_round_trips(&request);
+        assert_request_frame(request.clone());
+        assert_nota_round_trip(&request);
     }
 }
 
 #[test]
-fn reply_variants_round_trip() {
+fn every_reply_round_trips_through_nota_and_exchange_frame() {
     let replies = [
-        MentciReply::QuestionPresented(QuestionPresented {
-            question: QuestionIdentifier::new("question-1"),
-            revision: RevisionCounter::new(1),
-            accepted_at: TimestampNanos::new(10),
+        MentciReply::QuestionAccepted(QuestionPresented {
+            question_identifier: QuestionIdentifier::new("question-1"),
+            revision_counter: RevisionCounter::new(1),
+            timestamp_nanos: TimestampNanos::new(10),
         }),
-        MentciReply::UpdateAccepted(UpdateAccepted {
-            identifier: UpdateIdentifier::new("update-1"),
-            revision: RevisionCounter::new(2),
+        MentciReply::UpdateApplied(UpdateAccepted {
+            update_identifier: UpdateIdentifier::new("update-1"),
+            revision_counter: RevisionCounter::new(2),
         }),
-        MentciReply::InterfaceObservationOpened(InterfaceObservationOpened {
-            token: SubscriptionToken::new("subscription-1"),
-            state: projected_state(),
+        MentciReply::InterfaceObservationStarted(InterfaceObservationOpened {
+            subscription_token: SubscriptionToken::new("subscription-1"),
+            projected_interface_state: projected_state(),
         }),
-        MentciReply::VerdictAccepted(signal_mentci::VerdictAccepted {
-            question: QuestionIdentifier::new("question-1"),
-            decision: ApprovalDecision::Reject,
-            accepted_at: TimestampNanos::new(11),
+        MentciReply::VerdictRecorded(VerdictAccepted {
+            question_identifier: QuestionIdentifier::new("question-1"),
+            approval_decision: ApprovalDecision::Reject,
+            timestamp_nanos: TimestampNanos::new(11),
         }),
-        MentciReply::AnswerProposalAdmitted(AnswerProposalAdmitted {
-            proposal: ProposalIdentifier::new("proposal-1"),
-            question: QuestionIdentifier::new("question-1"),
-            digest: ProposalDigest::new("proposal-digest-1"),
-            revision: RevisionCounter::new(3),
+        MentciReply::AnswerProposalAccepted(AnswerProposalAdmitted {
+            proposal_identifier: ProposalIdentifier::new("proposal-1"),
+            question_identifier: QuestionIdentifier::new("question-1"),
+            proposal_digest: ProposalDigest::new("proposal-digest-1"),
+            revision_counter: RevisionCounter::new(3),
         }),
-        MentciReply::InterceptPolicyCreated(intercept_policy()),
-        MentciReply::InterceptPolicyReplaced(intercept_policy()),
-        MentciReply::InterceptPolicyCancelled(intercept_policy_identifier()),
-        MentciReply::InterceptPoliciesListed(active_intercept_policies()),
+        MentciReply::InterceptPolicyCreated(policy()),
+        MentciReply::InterceptPolicyReplaced(policy()),
+        MentciReply::InterceptPolicyCancelled(policy_identifier()),
+        MentciReply::InterceptPoliciesListed(ActiveInterceptPolicies::from_policies(
+            vec![policy()],
+        )),
         MentciReply::ParkedRequestsFetched(parked_request_snapshot()),
-        MentciReply::ParkedRequestAnswered(parked_request_resolution()),
-        MentciReply::InterfaceObservationRetracted(InterfaceObservationRetracted::new(
+        MentciReply::ParkedRequestAnswered(resolution()),
+        MentciReply::InterfaceObservationClosed(InterfaceObservationRetracted::new(
             SubscriptionToken::new("subscription-1"),
         )),
-        MentciReply::Rejection(Rejection::new(RejectionReason::UnknownQuestion)),
+        MentciReply::RequestRejected(Rejection::new(RejectionReason::UnknownQuestion)),
     ];
     for reply in replies {
-        assert_reply_round_trips(reply.clone());
-        assert_nota_round_trips(&reply);
+        assert_reply_frame(reply.clone());
+        assert_nota_round_trip(&reply);
     }
 }
 
 #[test]
-fn event_round_trips() {
-    let event = MentciEvent::InterfaceStateChanged(projected_state());
-    assert_nota_round_trips(&event);
+fn cross_contract_criome_slot_survives_nota() {
+    let proposal = question_proposal();
+    assert_eq!(
+        proposal
+            .approval_source
+            .criome_slot()
+            .map(AuthorizationRequestSlot::as_str),
+        Some("slot-1"),
+    );
+    let recovered: QuestionProposal = NotaSource::new(&proposal.to_nota())
+        .parse()
+        .expect("decode");
+    assert_eq!(
+        recovered
+            .approval_source
+            .criome_slot()
+            .map(AuthorizationRequestSlot::as_str),
+        Some("slot-1"),
+    );
 }
 
 #[test]
-fn closed_verdict_has_no_authored_answer_variant() {
-    for decision in [
-        ApprovalDecision::ApproveSuggestedAnswer,
-        ApprovalDecision::Reject,
-        ApprovalDecision::Defer,
-    ] {
-        assert_nota_round_trips(&decision);
-    }
-}
-
-#[test]
-fn projected_state_can_hide_full_question_context() {
-    let status_projection = ProjectedInterfaceState {
-        revision: RevisionCounter::new(4),
-        projection: InterfaceProjection::StatusProjection(StatusText::new("waiting")),
-    };
-    assert_nota_round_trips(&status_projection);
-
-    let full_projection = ProjectedInterfaceState {
-        revision: RevisionCounter::new(5),
-        projection: InterfaceProjection::FullProjection(InterfaceState::new(
+fn full_projection_preserves_criome_access() {
+    let state = ProjectedInterfaceState {
+        revision_counter: RevisionCounter::new(5),
+        interface_projection: InterfaceProjection::FullProjection(InterfaceState::new(
             RevisionCounter::new(5),
             StatusText::new("waiting"),
             Some(NotificationText::new("new-question")),
             vec![PaneContent {
-                pane: PaneLabel::new("approval"),
-                body: ContextBody::new("question-context"),
+                pane_label: PaneLabel::new("approval"),
+                context_body: ContextBody::new("question-context"),
             }],
             vec![approval_question()],
             CriomeAccess::ReadWrite,
         )),
     };
-    assert_nota_round_trips(&full_projection);
-}
-
-#[test]
-fn criome_escalation_source_carries_the_slot() {
-    // The seam: a criome-sourced question keeps its parked slot, typed, so a
-    // client answering it routes the verdict back to criome by that slot.
-    let proposal = question_proposal();
-    assert_eq!(
-        proposal
-            .source
-            .criome_slot()
-            .map(AuthorizationRequestSlot::as_str),
-        Some("slot-1"),
-    );
-
-    // The slot survives the NOTA round trip.
-    let recovered: QuestionProposal = NotaSource::new(&proposal.to_nota())
-        .parse()
-        .expect("decode proposal");
-    assert_eq!(
-        recovered
-            .source
-            .criome_slot()
-            .map(AuthorizationRequestSlot::as_str),
-        Some("slot-1"),
-    );
-
-    // Non-criome sources carry no slot.
-    let agent = QuestionProposal::new(
-        ApprovalSource::AgentQuestion,
-        PromptText::new("ask"),
-        None,
-        ExplanationText::new("local"),
-        vec![],
-    );
-    assert!(agent.source.criome_slot().is_none());
-}
-
-#[test]
-fn criome_interception_source_carries_the_parked_request_identifier() {
-    let proposal = QuestionProposal::new(
-        ApprovalSource::CriomeInterception(parked_request_identifier()),
-        PromptText::new("approve-intercepted-spirit-operation"),
-        Some(AnswerText::new("approve")),
-        ExplanationText::new("raw-payload-visible"),
-        vec![QuestionContext {
-            label: ContextLabel::new("raw-spirit-operation"),
-            body: ContextBody::new("(Record (...))"),
-        }],
-    );
-
-    assert_eq!(
-        proposal
-            .source
-            .parked_request()
-            .map(ParkedRequestIdentifier::as_str),
-        Some("parked-request-1"),
-    );
-    assert!(proposal.source.criome_slot().is_none());
-    assert_nota_round_trips(&proposal);
+    assert_nota_round_trip(&state);
+    assert_eq!(state.criome_access(), Some(CriomeAccess::ReadWrite));
 }

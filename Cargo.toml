@@ -1,6 +1,6 @@
 [package]
 name         = "signal-mentci"
-version      = "0.2.0"
+version      = "0.3.0"
 edition      = "2024"
 rust-version = "1.88"
 license      = "MIT OR Apache-2.0"
@@ -26,12 +26,12 @@ nota-text = ["dep:nota", "signal-criome/nota-text", "signal-frame/nota-text"]
 [dependencies]
 nota         = { package = "nota", git = "https://github.com/LiGoldragon/nota.git", branch = "main", optional = true }
 rkyv         = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
-signal-criome = { git = "https://github.com/LiGoldragon/signal-criome.git", branch = "main" }
+signal-criome = { git = "https://github.com/LiGoldragon/signal-criome.git", rev = "7a010ec7" }
 signal-frame = { git = "https://github.com/LiGoldragon/signal-frame.git", branch = "main", default-features = false }
 thiserror    = "2"
 
 [build-dependencies]
-schema-rust = { package = "schema-rust", git = "https://github.com/LiGoldragon/schema-rust.git", branch = "main" }
+schema-rust = { package = "schema-rust", git = "https://github.com/LiGoldragon/schema-rust.git", rev = "87de872d" }
 
 [lints.rust]
 unsafe_code = "forbid"

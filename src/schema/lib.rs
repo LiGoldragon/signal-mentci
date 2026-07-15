@@ -200,8 +200,8 @@ pub enum ApprovalSource {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct QuestionContext {
-    pub label: ContextLabel,
-    pub body: ContextBody,
+    pub context_label: ContextLabel,
+    pub context_body: ContextBody,
 }
 
 #[rustfmt::skip]
@@ -210,28 +210,12 @@ pub struct QuestionContext {
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct SuggestedAnswer(Option<AnswerText>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Context(Vec<QuestionContext>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct QuestionProposal {
-    pub source: ApprovalSource,
-    pub prompt: PromptText,
-    pub(crate) suggested_answer: SuggestedAnswer,
-    pub explanation: ExplanationText,
-    pub(crate) context: Context,
+    pub approval_source: ApprovalSource,
+    pub prompt_text: PromptText,
+    pub optional_answer_text: Option<AnswerText>,
+    pub explanation_text: ExplanationText,
+    pub question_context_vector: Vec<QuestionContext>,
 }
 
 #[rustfmt::skip]
@@ -241,8 +225,8 @@ pub struct QuestionProposal {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ApprovalQuestion {
-    pub identifier: QuestionIdentifier,
-    pub proposal: QuestionProposal,
+    pub question_identifier: QuestionIdentifier,
+    pub question_proposal: QuestionProposal,
 }
 
 #[rustfmt::skip]
@@ -293,9 +277,9 @@ pub enum CriomeAccess {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ApprovalVerdict {
-    pub question: QuestionIdentifier,
-    pub decision: ApprovalDecision,
-    pub answered_by: SubscriberName,
+    pub question_identifier: QuestionIdentifier,
+    pub approval_decision: ApprovalDecision,
+    pub subscriber_name: SubscriberName,
 }
 
 #[rustfmt::skip]
@@ -305,9 +289,9 @@ pub struct ApprovalVerdict {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AnswerProposal {
-    pub question: QuestionIdentifier,
-    pub body: AnswerText,
-    pub authored_by: SubscriberName,
+    pub question_identifier: QuestionIdentifier,
+    pub answer_text: AnswerText,
+    pub subscriber_name: SubscriberName,
 }
 
 #[rustfmt::skip]
@@ -325,8 +309,8 @@ pub struct InterceptPolicyObservation {}
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct InterfaceUpdate {
-    pub identifier: UpdateIdentifier,
-    pub mutation: InterfaceMutation,
+    pub update_identifier: UpdateIdentifier,
+    pub interface_mutation: InterfaceMutation,
 }
 
 #[rustfmt::skip]
@@ -351,8 +335,8 @@ pub enum InterfaceMutation {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct PaneContent {
-    pub pane: PaneLabel,
-    pub body: ContextBody,
+    pub pane_label: PaneLabel,
+    pub context_body: ContextBody,
 }
 
 #[rustfmt::skip]
@@ -361,36 +345,12 @@ pub struct PaneContent {
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Notification(Option<NotificationText>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Panes(Vec<PaneContent>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct PendingQuestions(Vec<ApprovalQuestion>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct InterfaceState {
-    pub revision: RevisionCounter,
-    pub status: StatusText,
-    pub(crate) notification: Notification,
-    pub(crate) panes: Panes,
-    pub(crate) pending_questions: PendingQuestions,
+    pub revision_counter: RevisionCounter,
+    pub status_text: StatusText,
+    pub optional_notification_text: Option<NotificationText>,
+    pub pane_content_vector: Vec<PaneContent>,
+    pub approval_question_vector: Vec<ApprovalQuestion>,
     pub criome_access: CriomeAccess,
 }
 
@@ -423,8 +383,8 @@ pub enum InterfaceInterest {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct InterfaceStateObservation {
-    pub subscriber: SubscriberName,
-    pub interest: InterfaceInterest,
+    pub subscriber_name: SubscriberName,
+    pub interface_interest: InterfaceInterest,
 }
 
 #[rustfmt::skip]
@@ -434,8 +394,8 @@ pub struct InterfaceStateObservation {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ProjectedInterfaceState {
-    pub revision: RevisionCounter,
-    pub projection: InterfaceProjection,
+    pub revision_counter: RevisionCounter,
+    pub interface_projection: InterfaceProjection,
 }
 
 #[rustfmt::skip]
@@ -445,8 +405,8 @@ pub struct ProjectedInterfaceState {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct InterfaceObservationOpened {
-    pub token: SubscriptionToken,
-    pub state: ProjectedInterfaceState,
+    pub subscription_token: SubscriptionToken,
+    pub projected_interface_state: ProjectedInterfaceState,
 }
 
 #[rustfmt::skip]
@@ -479,15 +439,7 @@ pub enum InterfaceProjection {
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct VisibleQuestions(Vec<ApprovalQuestion>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct PendingQuestionsView(VisibleQuestions);
+pub struct PendingQuestionsView(Vec<ApprovalQuestion>);
 
 #[rustfmt::skip]
 #[cfg_attr(
@@ -504,9 +456,9 @@ pub struct StandardSocket(SocketPath);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct QuestionPresented {
-    pub question: QuestionIdentifier,
-    pub revision: RevisionCounter,
-    pub accepted_at: TimestampNanos,
+    pub question_identifier: QuestionIdentifier,
+    pub revision_counter: RevisionCounter,
+    pub timestamp_nanos: TimestampNanos,
 }
 
 #[rustfmt::skip]
@@ -516,8 +468,8 @@ pub struct QuestionPresented {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct UpdateAccepted {
-    pub identifier: UpdateIdentifier,
-    pub revision: RevisionCounter,
+    pub update_identifier: UpdateIdentifier,
+    pub revision_counter: RevisionCounter,
 }
 
 #[rustfmt::skip]
@@ -527,9 +479,9 @@ pub struct UpdateAccepted {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct VerdictAccepted {
-    pub question: QuestionIdentifier,
-    pub decision: ApprovalDecision,
-    pub accepted_at: TimestampNanos,
+    pub question_identifier: QuestionIdentifier,
+    pub approval_decision: ApprovalDecision,
+    pub timestamp_nanos: TimestampNanos,
 }
 
 #[rustfmt::skip]
@@ -539,10 +491,10 @@ pub struct VerdictAccepted {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AnswerProposalAdmitted {
-    pub proposal: ProposalIdentifier,
-    pub question: QuestionIdentifier,
-    pub digest: ProposalDigest,
-    pub revision: RevisionCounter,
+    pub proposal_identifier: ProposalIdentifier,
+    pub question_identifier: QuestionIdentifier,
+    pub proposal_digest: ProposalDigest,
+    pub revision_counter: RevisionCounter,
 }
 
 #[rustfmt::skip]
@@ -591,16 +543,6 @@ pub struct Rejection(RejectionReason);
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub enum MentciEvent {
-    InterfaceStateChanged(ProjectedInterfaceState),
-}
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum Input {
     PresentQuestion(QuestionProposal),
     PushUpdate(InterfaceUpdate),
@@ -623,19 +565,19 @@ pub enum Input {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum Output {
-    QuestionPresented(QuestionPresented),
-    UpdateAccepted(UpdateAccepted),
-    InterfaceObservationOpened(InterfaceObservationOpened),
-    VerdictAccepted(VerdictAccepted),
-    AnswerProposalAdmitted(AnswerProposalAdmitted),
+    QuestionAccepted(QuestionPresented),
+    UpdateApplied(UpdateAccepted),
+    InterfaceObservationStarted(InterfaceObservationOpened),
+    VerdictRecorded(VerdictAccepted),
+    AnswerProposalAccepted(AnswerProposalAdmitted),
     InterceptPolicyCreated(InterceptPolicy),
     InterceptPolicyReplaced(InterceptPolicy),
     InterceptPolicyCancelled(InterceptPolicyIdentifier),
     InterceptPoliciesListed(ActiveInterceptPolicies),
     ParkedRequestsFetched(ParkedRequestSnapshot),
     ParkedRequestAnswered(ParkedRequestResolution),
-    InterfaceObservationRetracted(InterfaceObservationRetracted),
-    Rejection(Rejection),
+    InterfaceObservationClosed(InterfaceObservationRetracted),
+    RequestRejected(Rejection),
 }
 
 #[rustfmt::skip]
@@ -981,134 +923,20 @@ impl From<Path> for SocketPath {
 }
 
 #[rustfmt::skip]
-impl SuggestedAnswer {
-    pub fn new(payload: Option<AnswerText>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Option<AnswerText> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Option<AnswerText> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Option<AnswerText>> for SuggestedAnswer {
-    fn from(payload: Option<AnswerText>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl Context {
-    pub fn new(payload: Vec<QuestionContext>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<QuestionContext> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<QuestionContext> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<QuestionContext>> for Context {
-    fn from(payload: Vec<QuestionContext>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl Notification {
-    pub fn new(payload: Option<NotificationText>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Option<NotificationText> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Option<NotificationText> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Option<NotificationText>> for Notification {
-    fn from(payload: Option<NotificationText>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl Panes {
-    pub fn new(payload: Vec<PaneContent>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<PaneContent> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<PaneContent> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<PaneContent>> for Panes {
-    fn from(payload: Vec<PaneContent>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl PendingQuestions {
-    pub fn new(payload: Vec<ApprovalQuestion>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<ApprovalQuestion> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<ApprovalQuestion> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<ApprovalQuestion>> for PendingQuestions {
-    fn from(payload: Vec<ApprovalQuestion>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl VisibleQuestions {
-    pub fn new(payload: Vec<ApprovalQuestion>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<ApprovalQuestion> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<ApprovalQuestion> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<ApprovalQuestion>> for VisibleQuestions {
-    fn from(payload: Vec<ApprovalQuestion>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
 impl PendingQuestionsView {
-    pub fn new(payload: VisibleQuestions) -> Self {
+    pub fn new(payload: Vec<ApprovalQuestion>) -> Self {
         Self(payload)
     }
-    pub fn payload(&self) -> &VisibleQuestions {
+    pub fn payload(&self) -> &Vec<ApprovalQuestion> {
         &self.0
     }
-    pub fn into_payload(self) -> VisibleQuestions {
+    pub fn into_payload(self) -> Vec<ApprovalQuestion> {
         self.0
     }
 }
 #[rustfmt::skip]
-impl From<VisibleQuestions> for PendingQuestionsView {
-    fn from(payload: VisibleQuestions) -> Self {
+impl From<Vec<ApprovalQuestion>> for PendingQuestionsView {
+    fn from(payload: Vec<ApprovalQuestion>) -> Self {
         Self::new(payload)
     }
 }
@@ -1220,15 +1048,8 @@ impl InterfaceProjection {
     pub fn notification_projection(payload: NotificationSlice) -> Self {
         Self::NotificationProjection(payload)
     }
-    pub fn pending_questions_projection(payload: VisibleQuestions) -> Self {
+    pub fn pending_questions_projection(payload: Vec<ApprovalQuestion>) -> Self {
         Self::PendingQuestionsProjection(PendingQuestionsView::new(payload))
-    }
-}
-
-#[rustfmt::skip]
-impl MentciEvent {
-    pub fn interface_state_changed(payload: ProjectedInterfaceState) -> Self {
-        Self::InterfaceStateChanged(payload)
     }
 }
 
@@ -1274,20 +1095,20 @@ impl Input {
 
 #[rustfmt::skip]
 impl Output {
-    pub fn question_presented(payload: QuestionPresented) -> Self {
-        Self::QuestionPresented(payload)
+    pub fn question_accepted(payload: QuestionPresented) -> Self {
+        Self::QuestionAccepted(payload)
     }
-    pub fn update_accepted(payload: UpdateAccepted) -> Self {
-        Self::UpdateAccepted(payload)
+    pub fn update_applied(payload: UpdateAccepted) -> Self {
+        Self::UpdateApplied(payload)
     }
-    pub fn interface_observation_opened(payload: InterfaceObservationOpened) -> Self {
-        Self::InterfaceObservationOpened(payload)
+    pub fn interface_observation_started(payload: InterfaceObservationOpened) -> Self {
+        Self::InterfaceObservationStarted(payload)
     }
-    pub fn verdict_accepted(payload: VerdictAccepted) -> Self {
-        Self::VerdictAccepted(payload)
+    pub fn verdict_recorded(payload: VerdictAccepted) -> Self {
+        Self::VerdictRecorded(payload)
     }
-    pub fn answer_proposal_admitted(payload: AnswerProposalAdmitted) -> Self {
-        Self::AnswerProposalAdmitted(payload)
+    pub fn answer_proposal_accepted(payload: AnswerProposalAdmitted) -> Self {
+        Self::AnswerProposalAccepted(payload)
     }
     pub fn intercept_policy_created(payload: InterceptPolicy) -> Self {
         Self::InterceptPolicyCreated(payload)
@@ -1307,11 +1128,11 @@ impl Output {
     pub fn parked_request_answered(payload: ParkedRequestResolution) -> Self {
         Self::ParkedRequestAnswered(payload)
     }
-    pub fn interface_observation_retracted(payload: SubscriptionToken) -> Self {
-        Self::InterfaceObservationRetracted(InterfaceObservationRetracted::new(payload))
+    pub fn interface_observation_closed(payload: SubscriptionToken) -> Self {
+        Self::InterfaceObservationClosed(InterfaceObservationRetracted::new(payload))
     }
-    pub fn rejection(payload: RejectionReason) -> Self {
-        Self::Rejection(Rejection::new(payload))
+    pub fn request_rejected(payload: RejectionReason) -> Self {
+        Self::RequestRejected(Rejection::new(payload))
     }
 }
 
@@ -1407,13 +1228,6 @@ impl From<PendingQuestionsView> for InterfaceProjection {
 }
 
 #[rustfmt::skip]
-impl From<ProjectedInterfaceState> for MentciEvent {
-    fn from(payload: ProjectedInterfaceState) -> Self {
-        Self::InterfaceStateChanged(payload)
-    }
-}
-
-#[rustfmt::skip]
 impl From<QuestionProposal> for Input {
     fn from(payload: QuestionProposal) -> Self {
         Self::PresentQuestion(payload)
@@ -1486,35 +1300,35 @@ impl From<SubscriptionToken> for Input {
 #[rustfmt::skip]
 impl From<QuestionPresented> for Output {
     fn from(payload: QuestionPresented) -> Self {
-        Self::QuestionPresented(payload)
+        Self::QuestionAccepted(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<UpdateAccepted> for Output {
     fn from(payload: UpdateAccepted) -> Self {
-        Self::UpdateAccepted(payload)
+        Self::UpdateApplied(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<InterfaceObservationOpened> for Output {
     fn from(payload: InterfaceObservationOpened) -> Self {
-        Self::InterfaceObservationOpened(payload)
+        Self::InterfaceObservationStarted(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<VerdictAccepted> for Output {
     fn from(payload: VerdictAccepted) -> Self {
-        Self::VerdictAccepted(payload)
+        Self::VerdictRecorded(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<AnswerProposalAdmitted> for Output {
     fn from(payload: AnswerProposalAdmitted) -> Self {
-        Self::AnswerProposalAdmitted(payload)
+        Self::AnswerProposalAccepted(payload)
     }
 }
 
@@ -1549,14 +1363,14 @@ impl From<ParkedRequestResolution> for Output {
 #[rustfmt::skip]
 impl From<InterfaceObservationRetracted> for Output {
     fn from(payload: InterfaceObservationRetracted) -> Self {
-        Self::InterfaceObservationRetracted(payload)
+        Self::InterfaceObservationClosed(payload)
     }
 }
 
 #[rustfmt::skip]
 impl From<Rejection> for Output {
     fn from(payload: Rejection) -> Self {
-        Self::Rejection(payload)
+        Self::RequestRejected(payload)
     }
 }
 
@@ -1606,19 +1420,19 @@ pub mod short_header {
     pub const INPUT_FETCH_PARKED_REQUESTS: u64 = 0x0009000000000000;
     pub const INPUT_ANSWER_PARKED_REQUEST: u64 = 0x000A000000000000;
     pub const INPUT_RETRACT_INTERFACE_OBSERVATION: u64 = 0x000B000000000000;
-    pub const OUTPUT_QUESTION_PRESENTED: u64 = 0x0100000000000000;
-    pub const OUTPUT_UPDATE_ACCEPTED: u64 = 0x0101000000000000;
-    pub const OUTPUT_INTERFACE_OBSERVATION_OPENED: u64 = 0x0102000000000000;
-    pub const OUTPUT_VERDICT_ACCEPTED: u64 = 0x0103000000000000;
-    pub const OUTPUT_ANSWER_PROPOSAL_ADMITTED: u64 = 0x0104000000000000;
+    pub const OUTPUT_QUESTION_ACCEPTED: u64 = 0x0100000000000000;
+    pub const OUTPUT_UPDATE_APPLIED: u64 = 0x0101000000000000;
+    pub const OUTPUT_INTERFACE_OBSERVATION_STARTED: u64 = 0x0102000000000000;
+    pub const OUTPUT_VERDICT_RECORDED: u64 = 0x0103000000000000;
+    pub const OUTPUT_ANSWER_PROPOSAL_ACCEPTED: u64 = 0x0104000000000000;
     pub const OUTPUT_INTERCEPT_POLICY_CREATED: u64 = 0x0105000000000000;
     pub const OUTPUT_INTERCEPT_POLICY_REPLACED: u64 = 0x0106000000000000;
     pub const OUTPUT_INTERCEPT_POLICY_CANCELLED: u64 = 0x0107000000000000;
     pub const OUTPUT_INTERCEPT_POLICIES_LISTED: u64 = 0x0108000000000000;
     pub const OUTPUT_PARKED_REQUESTS_FETCHED: u64 = 0x0109000000000000;
     pub const OUTPUT_PARKED_REQUEST_ANSWERED: u64 = 0x010A000000000000;
-    pub const OUTPUT_INTERFACE_OBSERVATION_RETRACTED: u64 = 0x010B000000000000;
-    pub const OUTPUT_REJECTION: u64 = 0x010C000000000000;
+    pub const OUTPUT_INTERFACE_OBSERVATION_CLOSED: u64 = 0x010B000000000000;
+    pub const OUTPUT_REQUEST_REJECTED: u64 = 0x010C000000000000;
 }
 
 #[rustfmt::skip]
@@ -1702,19 +1516,19 @@ pub enum InputRoute {
     Eq,
 )]
 pub enum OutputRoute {
-    QuestionPresented,
-    UpdateAccepted,
-    InterfaceObservationOpened,
-    VerdictAccepted,
-    AnswerProposalAdmitted,
+    QuestionAccepted,
+    UpdateApplied,
+    InterfaceObservationStarted,
+    VerdictRecorded,
+    AnswerProposalAccepted,
     InterceptPolicyCreated,
     InterceptPolicyReplaced,
     InterceptPolicyCancelled,
     InterceptPoliciesListed,
     ParkedRequestsFetched,
     ParkedRequestAnswered,
-    InterfaceObservationRetracted,
-    Rejection,
+    InterfaceObservationClosed,
+    RequestRejected,
 }
 
 #[rustfmt::skip]
@@ -1839,35 +1653,35 @@ impl Input {
 impl Output {
     pub fn route(&self) -> OutputRoute {
         match self {
-            Self::QuestionPresented(_) => OutputRoute::QuestionPresented,
-            Self::UpdateAccepted(_) => OutputRoute::UpdateAccepted,
-            Self::InterfaceObservationOpened(_) => {
-                OutputRoute::InterfaceObservationOpened
+            Self::QuestionAccepted(_) => OutputRoute::QuestionAccepted,
+            Self::UpdateApplied(_) => OutputRoute::UpdateApplied,
+            Self::InterfaceObservationStarted(_) => {
+                OutputRoute::InterfaceObservationStarted
             }
-            Self::VerdictAccepted(_) => OutputRoute::VerdictAccepted,
-            Self::AnswerProposalAdmitted(_) => OutputRoute::AnswerProposalAdmitted,
+            Self::VerdictRecorded(_) => OutputRoute::VerdictRecorded,
+            Self::AnswerProposalAccepted(_) => OutputRoute::AnswerProposalAccepted,
             Self::InterceptPolicyCreated(_) => OutputRoute::InterceptPolicyCreated,
             Self::InterceptPolicyReplaced(_) => OutputRoute::InterceptPolicyReplaced,
             Self::InterceptPolicyCancelled(_) => OutputRoute::InterceptPolicyCancelled,
             Self::InterceptPoliciesListed(_) => OutputRoute::InterceptPoliciesListed,
             Self::ParkedRequestsFetched(_) => OutputRoute::ParkedRequestsFetched,
             Self::ParkedRequestAnswered(_) => OutputRoute::ParkedRequestAnswered,
-            Self::InterfaceObservationRetracted(_) => {
-                OutputRoute::InterfaceObservationRetracted
+            Self::InterfaceObservationClosed(_) => {
+                OutputRoute::InterfaceObservationClosed
             }
-            Self::Rejection(_) => OutputRoute::Rejection,
+            Self::RequestRejected(_) => OutputRoute::RequestRejected,
         }
     }
     pub fn short_header(&self) -> u64 {
         match self {
-            Self::QuestionPresented(_) => short_header::OUTPUT_QUESTION_PRESENTED,
-            Self::UpdateAccepted(_) => short_header::OUTPUT_UPDATE_ACCEPTED,
-            Self::InterfaceObservationOpened(_) => {
-                short_header::OUTPUT_INTERFACE_OBSERVATION_OPENED
+            Self::QuestionAccepted(_) => short_header::OUTPUT_QUESTION_ACCEPTED,
+            Self::UpdateApplied(_) => short_header::OUTPUT_UPDATE_APPLIED,
+            Self::InterfaceObservationStarted(_) => {
+                short_header::OUTPUT_INTERFACE_OBSERVATION_STARTED
             }
-            Self::VerdictAccepted(_) => short_header::OUTPUT_VERDICT_ACCEPTED,
-            Self::AnswerProposalAdmitted(_) => {
-                short_header::OUTPUT_ANSWER_PROPOSAL_ADMITTED
+            Self::VerdictRecorded(_) => short_header::OUTPUT_VERDICT_RECORDED,
+            Self::AnswerProposalAccepted(_) => {
+                short_header::OUTPUT_ANSWER_PROPOSAL_ACCEPTED
             }
             Self::InterceptPolicyCreated(_) => {
                 short_header::OUTPUT_INTERCEPT_POLICY_CREATED
@@ -1887,24 +1701,24 @@ impl Output {
             Self::ParkedRequestAnswered(_) => {
                 short_header::OUTPUT_PARKED_REQUEST_ANSWERED
             }
-            Self::InterfaceObservationRetracted(_) => {
-                short_header::OUTPUT_INTERFACE_OBSERVATION_RETRACTED
+            Self::InterfaceObservationClosed(_) => {
+                short_header::OUTPUT_INTERFACE_OBSERVATION_CLOSED
             }
-            Self::Rejection(_) => short_header::OUTPUT_REJECTION,
+            Self::RequestRejected(_) => short_header::OUTPUT_REQUEST_REJECTED,
         }
     }
     pub fn route_from_short_header(
         header: u64,
     ) -> Result<OutputRoute, SignalFrameError> {
         match header {
-            short_header::OUTPUT_QUESTION_PRESENTED => Ok(OutputRoute::QuestionPresented),
-            short_header::OUTPUT_UPDATE_ACCEPTED => Ok(OutputRoute::UpdateAccepted),
-            short_header::OUTPUT_INTERFACE_OBSERVATION_OPENED => {
-                Ok(OutputRoute::InterfaceObservationOpened)
+            short_header::OUTPUT_QUESTION_ACCEPTED => Ok(OutputRoute::QuestionAccepted),
+            short_header::OUTPUT_UPDATE_APPLIED => Ok(OutputRoute::UpdateApplied),
+            short_header::OUTPUT_INTERFACE_OBSERVATION_STARTED => {
+                Ok(OutputRoute::InterfaceObservationStarted)
             }
-            short_header::OUTPUT_VERDICT_ACCEPTED => Ok(OutputRoute::VerdictAccepted),
-            short_header::OUTPUT_ANSWER_PROPOSAL_ADMITTED => {
-                Ok(OutputRoute::AnswerProposalAdmitted)
+            short_header::OUTPUT_VERDICT_RECORDED => Ok(OutputRoute::VerdictRecorded),
+            short_header::OUTPUT_ANSWER_PROPOSAL_ACCEPTED => {
+                Ok(OutputRoute::AnswerProposalAccepted)
             }
             short_header::OUTPUT_INTERCEPT_POLICY_CREATED => {
                 Ok(OutputRoute::InterceptPolicyCreated)
@@ -1924,10 +1738,10 @@ impl Output {
             short_header::OUTPUT_PARKED_REQUEST_ANSWERED => {
                 Ok(OutputRoute::ParkedRequestAnswered)
             }
-            short_header::OUTPUT_INTERFACE_OBSERVATION_RETRACTED => {
-                Ok(OutputRoute::InterfaceObservationRetracted)
+            short_header::OUTPUT_INTERFACE_OBSERVATION_CLOSED => {
+                Ok(OutputRoute::InterfaceObservationClosed)
             }
-            short_header::OUTPUT_REJECTION => Ok(OutputRoute::Rejection),
+            short_header::OUTPUT_REQUEST_REJECTED => Ok(OutputRoute::RequestRejected),
             _ => {
                 Err(SignalFrameError::UnknownHeader {
                     root_enum: "Output",
