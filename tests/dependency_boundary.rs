@@ -22,7 +22,7 @@ fn producer_owns_only_ethos_authority_and_strict_projection() {
     }
     assert!(manifest.contains("664335240a40728826cfaa09e3100cd867031912"));
     assert!(manifest.contains("8aa0bcaeb29fe9e461a11706a469638d2fd109ac"));
-    assert!(manifest.contains("56b0b556fab2c788c42379bbf80b4dbba1748629"));
+    assert!(manifest.contains("9e2cb87cac9bf201fde6f393590b23c57ad2cee6"));
 }
 
 #[test]
