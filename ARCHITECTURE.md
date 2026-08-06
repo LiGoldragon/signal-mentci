@@ -1,8 +1,9 @@
 # signal-mentci - architecture
 
-`signal-mentci` is the wire contract for Mentci's programmable UI. It is a pure
-schema-derived contract crate: generated rkyv records, optional NOTA projection,
-and a `signal-frame` request/reply/stream envelope.
+`signal-mentci` is the wire contract for Mentci's programmable UI. Its
+producer-owned `ethos/interface.ethos` is the sole structural authority. The
+strict Core Nomos → Whole Logos → Rust Logos projection supplies encoded Rust
+identities, Dotos text, rkyv storage, and a bound `signal-frame` envelope.
 
 ## Direction
 

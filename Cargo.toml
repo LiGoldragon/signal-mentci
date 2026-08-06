@@ -1,39 +1,38 @@
 [package]
-name         = "signal-mentci"
-version      = "0.3.0"
-edition      = "2024"
-rust-version = "1.88"
-license      = "MIT OR Apache-2.0"
-repository   = "https://github.com/LiGoldragon/signal-mentci"
-description  = "Signal contract for Mentci programmable UI state and approval flow."
-publish      = false
-links        = "signal-mentci"
-build        = "build.rs"
-
+name = "signal-mentci"
+version = "0.4.0"
+edition = "2024"
+rust-version = "1.89"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/LiGoldragon/signal-mentci"
+description = "Authority-verified ordinary Mentci Interface."
+publish = false
+links = "signal-mentci"
+build = "build.rs"
 [lib]
 name = "signal_mentci"
 path = "src/lib.rs"
-
-[[test]]
-name = "round_trip"
-path = "tests/round_trip.rs"
-required-features = ["nota-text"]
-
 [features]
-default = []
-nota-text = ["dep:nota", "signal-criome/nota-text", "signal-frame/nota-text"]
-
+default = ["dotos-text"]
+dotos-text = ["dep:dotos", "signal-frame/dotos-text", "signal-standard/dotos-text", "signal-criome/dotos-text"]
 [dependencies]
-nota         = { package = "nota", git = "https://github.com/LiGoldragon/nota.git", branch = "main", optional = true }
-rkyv         = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
-signal-criome = { git = "https://github.com/LiGoldragon/signal-criome.git", branch = "main" }
-signal-frame = { git = "https://github.com/LiGoldragon/signal-frame.git", branch = "main", default-features = false }
-thiserror    = "2"
-
+dotos = { package = "dotos", git = "https://github.com/LiGoldragon/dotos.git", rev = "80c7b17f7ad3cf547d2624c6a243e5de5f85c9f3", optional = true }
+rkyv = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
+signal-frame = { git = "https://github.com/LiGoldragon/signal-frame.git", rev = "8aa0bcaeb29fe9e461a11706a469638d2fd109ac", default-features = false }
+signal-criome = { git = "https://github.com/LiGoldragon/signal-criome.git", rev = "56b0b556fab2c788c42379bbf80b4dbba1748629", default-features = false }
+signal-standard = { git = "https://github.com/LiGoldragon/signal-standard.git", rev = "d5a4a545e61dafec30667f2af38ca503ab6d6d3f", default-features = false }
+thiserror = "2"
 [build-dependencies]
-schema-rust = { package = "schema-rust", git = "https://github.com/LiGoldragon/schema-rust.git", branch = "main" }
-
+core-ethos = { git = "https://github.com/LiGoldragon/core-ethos.git", rev = "43b48c779c54ee9f05cbcc111d5d88074b162461" }
+name-table = { git = "https://github.com/LiGoldragon/name-table.git", rev = "a22f48d8040ab9235f3552ad8654ff8e27b8157d" }
+rust-logos = { git = "https://github.com/LiGoldragon/rust-logos.git", rev = "081e99596826b15e2ff7f1356ae8d797b18aeffc" }
+schema-rust = { package = "schema-rust", git = "https://github.com/LiGoldragon/schema-rust.git", rev = "664335240a40728826cfaa09e3100cd867031912", default-features = false }
+sema-translator = { git = "https://github.com/LiGoldragon/sema-translator.git", rev = "287fbd728a05b1a6be1dc8a28bcf3ca06d9916b3", default-features = false, features = ["bootstrap"] }
+signal-sema-translator = { git = "https://github.com/LiGoldragon/signal-sema-translator.git", rev = "3f41813dd63904c7e2b3da4382eff64ed1bf12fe" }
+structural-codec = { git = "https://github.com/LiGoldragon/structural-codec.git", rev = "879d76f91facedd6d5cbca79e282260e1beb9478" }
+signal-criome = { git = "https://github.com/LiGoldragon/signal-criome.git", rev = "56b0b556fab2c788c42379bbf80b4dbba1748629", default-features = false }
+signal-standard = { git = "https://github.com/LiGoldragon/signal-standard.git", rev = "d5a4a545e61dafec30667f2af38ca503ab6d6d3f", default-features = false }
 [lints.rust]
 unsafe_code = "forbid"
-unused      = { level = "warn", priority = -1 }
-dead_code   = "warn"
+unused = { level = "warn", priority = -1 }
+dead_code = "warn"
