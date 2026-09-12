@@ -1,0 +1,23 @@
+; Canonical Datom examples for signal-mentci.
+; Written by `rewrite_the_canonical_file`; never spelled by hand.
+
+ListInterceptPolicies.{}
+RetractInterfaceObservation.token-1
+ObserveInterfaceState.{ operator FullInterfaceState }
+PushUpdate.{ update-1 SetPaneContent.{ main «waiting on a verdict» } }
+PresentQuestion.{ CriomeEscalation.slot-1 «approve the release?» yes «the quorum is short by one» { release «criome 1.0.0» } }
+ProposeEditedAnswer.{ question-1 «yes, with the second signature» operator }
+AnswerQuestion.{ question-1 ApproveSuggestedAnswer operator }
+CreateInterceptPolicy.{ session-1 { spirit-1 } [ Deploy ] 60000000000 AutoReject 3 RejectSamePriorityOverlap }
+CancelInterceptPolicy.{ policy-1 }
+FetchParkedRequests.{ Some.session-1 None }
+AnswerParkedRequest.{ parked-1 Approve }
+RequestRejected.{ QuestionAlreadyAnswered }
+UpdateApplied.{ update-1 12 }
+QuestionAccepted.{ question-1 13 1700000000000000000 }
+VerdictRecorded.{ question-1 Defer 1700000000000000001 }
+AnswerProposalAccepted.{ proposal-1 question-1 d1ge57 14 }
+InterfaceObservationStarted.{ token-1 { 15 FullProjection.{ 15 idle «one question waiting» { main «waiting on a verdict» } { question-1 { CriomeEscalation.slot-1 «approve the release?» yes «the quorum is short by one» { release «criome 1.0.0» } } } ReadWrite } } }
+InterfaceObservationClosed.{ token-1 }
+InterceptPolicyCreated.{ policy-1 session-1 { spirit-1 } [ Deploy Retire ] { 1700000000000000000 1700000060000000000 } LeaveParked 3 }
+InterceptPolicyCancelled.policy-1

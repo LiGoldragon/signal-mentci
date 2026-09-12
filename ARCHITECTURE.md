@@ -1,75 +1,69 @@
-# signal-mentci - architecture
+# signal-mentci architecture
 
-`signal-mentci` is the wire contract for Mentci's programmable UI. Its
-producer-owned `ethos/interface.ethos` is the sole structural authority. The
-strict Core Nomos → Whole Logos → Rust Logos projection supplies encoded Rust
-identities, Dotos text, rkyv storage, and a bound `signal-frame` envelope.
+## Center
 
-## Direction
+This repository owns what Mentci says and is told: the interface state it
+projects, the questions it presents, the verdicts it records, and the Criome
+views it surfaces to a human.
 
-Mentci is a state-bearing programmable UI component: the daemon owns the canonical UI state, and clients — CLI, egui shell, TUI, editor pane, status bar, agentic flows — are thin producers/subscribers over that daemon-owned state. A UI change exists because the daemon state changed.
+## Authority and projection
 
-The criome escalation slot (`ApprovalSource::CriomeEscalation`) is cross-imported from `signal_criome::schema::lib`, not redefined here. signal-mentci owns the slot's placement in the approval question; criome owns the type. Clients answer by sending `AnswerQuestion` to the Mentci daemon, and the daemon delivers the verdict to criome by that slot — clients never open a criome socket directly.
+`ethos/signal.ethos` is the sole textual source — a `Signal` root holding the
+import list, the request variants, the reply variants, and the type
+declarations. `ethos-zero` projects it into `src/generated/signal.rs`, which
+is committed; `build.rs` generates afresh and asserts equality, so a build
+cannot succeed while source and projection differ.
 
-The daemon holds its criome connection in read-only or write mode and mirrors that access level to clients via `InterfaceState::criome_access`. Clients present answer controls only when the daemon has write access; they never elevate the access level themselves.
+`src/lib.rs` re-exports the projection, and re-exports the portable frame from
+`signal` so a consumer speaks this contract without naming `signal` itself.
+The request and reply roots are named `Query` and `Response` — `ethos-zero`
+names them, not this contract.
 
-The verdict is closed: `ApproveSuggestedAnswer`, `Reject`, or `Defer`. When the psyche edits a suggestion, Mentci creates an `AnswerProposal` object that goes through the normal authorization path; there is no verdict side channel.
+## What is imported, and why
 
-## Owned
+Eleven names come from `signal-criome`: `ParkedRequestQuery`,
+`ParkedRequestAnswer`, `ParkedRequestSnapshot`, `ParkedRequestResolution`,
+`ParkedRequestIdentifier`, `InterceptPolicy`, `InterceptPolicyProposal`,
+`InterceptPolicyCancellation`, `InterceptPolicyIdentifier`,
+`ActiveInterceptPolicies` and `AuthorizationRequestSlot`.
 
-- `Input` / `Output` operation roots for the Mentci UI surface, including
-  `Input::AnswerQuestion(ApprovalVerdict)` — the single seam a client uses to
-  answer, criome-sourced or not.
-- `QuestionProposal`, `ApprovalQuestion`, `ApprovalVerdict`, `ApprovalDecision`,
-  `ApprovalSource`, and `AnswerProposal`.
-- Intercept-policy control requests that thin Mentci clients send to the
-  Mentci daemon for forwarding to criome's meta socket:
-  `CreateInterceptPolicy`, `ReplaceInterceptPolicy`, `CancelInterceptPolicy`,
-  `ListInterceptPolicies`, `FetchParkedRequests`, and `AnswerParkedRequest`.
-- `InterfaceState`, `ProjectedInterfaceState`, `InterfaceInterest`, and the
-  interface-state subscription.
-- Daemon-minted identity records such as `QuestionIdentifier`,
-  `ProposalIdentifier`, and `SubscriptionToken`.
+They are Criome's facts. Mentci is the surface a human meets them through, and
+a surface that redeclared them would be a second wire for the same thing — two
+shapes to keep in step, and a silent divergence the first time one moved. The
+import is what makes `MentciReply::ParkedRequestAnswered` carry the very value
+Criome produced.
 
-## Cross-imported, not owned
+The portable rkyv frame comes from `signal`, imported and never copied: one
+frame type across the estate is what lets a router carry every contract
+through one generic path.
 
-- `AuthorizationRequestSlot` is re-exported from `signal_criome::schema::lib`
-  and carried inside `ApprovalSource::CriomeEscalation(AuthorizationRequestSlot)`.
-  signal-mentci owns the slot's placement in the approval question; criome owns
-  the type. This is the seam the daemon routes verdicts on — a client emits
-  `AnswerQuestion` and the daemon delivers the verdict to criome by the parked
-  slot, so the client never opens a criome socket.
-- Intercept policy and parked Spirit request records are imported from
-  `signal-criome`. Mentci owns only the client-facing control roots and UI
-  placement; criome owns policy state, target keys, parked request identity, and
-  answer audit records.
+## Shape
 
-## Not Owned
+Nothing in this contract reaches itself; `InterfaceProjection` nests
+`InterfaceState`, which holds an `ApprovalQuestion` and a `PaneContent`, and
+the nesting bottoms out in text and counters. The whole contract therefore
+fits the rkyv archive the Signal frame carries.
 
-- The Mentci daemon and CLI runtime.
-- Durable state and SEMA tables.
-- Kameo actors and socket listeners.
-- Criome key custody and verdict signing.
-- UI rendering policy in individual clients.
+`NotificationSlice` is `Empty` or `Present`, not an `Option<NotificationText>`:
+the absence of a notification is a state the interface displays, not a missing
+field.
 
-## Invariants
+## The producer cut this contract is generated against
 
-- `PresentQuestion` carries a `QuestionProposal`; the daemon mints the
-  `QuestionIdentifier`.
-- `ObserveInterfaceState` carries an `InterfaceInterest`; the daemon mints the
-  `SubscriptionToken`.
-- Subscriptions receive `ProjectedInterfaceState`, not necessarily the full
-  `InterfaceState`.
-- `ApprovalDecision` is closed: `ApproveSuggestedAnswer`, `Reject`, or `Defer`.
-  Authored answer bodies are `AnswerProposal` objects admitted separately.
-- A criome-sourced question carries its `AuthorizationRequestSlot` in
-  `ApprovalSource::CriomeEscalation`; that slot is the daemon's routing key,
-  never a client's.
-- A criome-intercepted Spirit operation carries its `ParkedRequestIdentifier`
-  in `ApprovalSource::CriomeInterception`; the raw operation payload itself
-  remains in the imported `ParkedSpiritRequest`/question context for rendering.
-- `InterfaceState` carries the daemon's criome access mode as
-  `criome_access: CriomeAccess` (`CriomeAccess [ReadOnly ReadWrite]`); clients
-  read it through `ProjectedInterfaceState::criome_access` and present answer
-  controls only when the daemon has write access.
-- This crate stays wire-only: no actors, storage, daemon clients, or sockets.
+`ethos-zero` 9.0.0 `b232d35e`, whose projection derives
+`datom_codec::Composing` from the split composing kind that `datom-codec`
+0.27.0 `6dccc76b` reintroduced arity into; `signal` 5.0.0 `7bcb0949`,
+generated against the same pair; `protos` 0.30.1 `171b21f6`; and
+`signal-criome` 2.0.0 `5bfa61b5`, generated against all four.
+
+These move together and are spelled identically everywhere, without a `.git`
+suffix: cargo source identity is the pin string, not the commit, so one commit
+under two spellings is two packages — and `signal` carries `links = "signal"`,
+which admits exactly one per graph.
+
+## Boundaries
+
+`signal` for the frame and the framing, `signal-criome` for Criome's shapes,
+`rkyv` for the archive, and under the optional `datom` feature `datom-codec`
+and `protos` for the Datom text projection. Nothing else, and nothing here
+reaches a filesystem, a socket, or a clock.
