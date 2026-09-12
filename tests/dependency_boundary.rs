@@ -21,8 +21,8 @@ fn producer_owns_only_ethos_authority_and_strict_projection() {
         assert!(!build.contains(retired), "build contains {retired}");
     }
     assert!(manifest.contains("664335240a40728826cfaa09e3100cd867031912"));
-    assert!(manifest.contains("8aa0bcaeb29fe9e461a11706a469638d2fd109ac"));
-    assert!(manifest.contains("9e2cb87cac9bf201fde6f393590b23c57ad2cee6"));
+    assert!(manifest.contains("80f70d929ae6d72707052f097be2264872913983"));
+    assert!(manifest.contains("b85fe3408faa24b8439a3685396430a68bfbcb71"));
 }
 
 #[test]

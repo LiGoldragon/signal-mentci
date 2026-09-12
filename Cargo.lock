@@ -702,14 +702,14 @@ dependencies = [
 
 [[package]]
 name = "signal-mentci"
-version = "0.4.1"
+version = "0.4.2"
 dependencies = [
  "core-ethos 0.29.1",
  "dotos 0.10.1",
  "name-table 0.3.0",
  "rkyv",
  "rust-logos 0.30.1",
- "schema-rust 0.17.0",
+ "schema-rust 0.15.1",
  "sema-translator 0.8.0",
  "signal-criome",
  "signal-frame 0.3.2",
