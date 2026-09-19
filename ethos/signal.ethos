@@ -19,7 +19,10 @@ Signal
   CancelInterceptPolicy.InterceptPolicyCancellation
   ProposeEditedAnswer.AnswerProposal
   AnswerQuestion.ApprovalVerdict
-  AnswerParkedRequest.ParkedRequestAnswer ]
+  AnswerParkedRequest.ParkedRequestAnswer
+  ObserveRoster.RosterObservation
+  ObserveConversation.ConversationObservation
+  SubmitPsyche.PsycheSubmission ]
 [ InterfaceObservationStarted.InterfaceObservationOpened
   UpdateApplied.UpdateAccepted
   ParkedRequestAnswered.ParkedRequestResolution
@@ -32,8 +35,44 @@ Signal
   InterceptPoliciesListed.ActiveInterceptPolicies
   InterceptPolicyCreated.InterceptPolicy
   RequestRejected.Rejection
-  InterfaceObservationClosed.InterfaceObservationRetracted ]
+  InterfaceObservationClosed.InterfaceObservationRetracted
+  RosterObserved.RosterSnapshot
+  ConversationObserved.ConversationSnapshot
+  PsycheSubmitted.SubmissionReceipt
+  OperationUnavailable.OperationFailure ]
 [ ApprovalSource.[ CriomeEscalation.AuthorizationRequestSlot AgentQuestion CriomeInterception.ParkedRequestIdentifier LocalSystemPrompt ]
+  RequestIdentifier.String
+  FlowIdentifier.String
+  RosterObservation.{ RequestIdentifier }
+  ConversationObservation.{ RequestIdentifier FlowIdentifier }
+  PsycheSubmission.{ RequestIdentifier FlowIdentifier PsycheText }
+  PsycheText.String
+  RosterSnapshot.{ RequestIdentifier TimestampNanos SourceStatus Flows }
+  Flows.Vector<FlowSnapshot>
+  FlowSnapshot.{ FlowIdentifier FlowName SeatLabel FlowState Option<TimestampNanos> ActivitySource }
+  FlowName.String
+  SeatLabel.String
+  FlowState.[ Working Idle Blocked Stopped Unknown ]
+  ActivitySource.[ Herdr Transcript Unknown ]
+  SourceStatus.[ Observed Partial Unavailable ]
+  ConversationSnapshot.{ RequestIdentifier FlowIdentifier TimestampNanos SourceStatus Entries }
+  Entries.Vector<ConversationEntry>
+  ConversationEntry.{ EntryIdentifier Sequence SourceOrdinal TimestampNanos EntryText SourceKind Provenance Option<AttributedActor> }
+  EntryIdentifier.String
+  Sequence.Integer
+  SourceOrdinal.Integer
+  EntryText.String
+  SourceKind.[ UserInput FinalResponse ]
+  Provenance.[ PsycheViaUnity Machine Unknown ]
+  AttributedActor.String
+  SubmissionReceipt.{ RequestIdentifier SubmissionDisposition Option<SubmissionReason> Option<RelayIdentifier> Option<EventIdentifier> TimestampNanos ReceiptGrade }
+  SubmissionDisposition.[ Accepted Held Rejected ]
+  SubmissionReason.[ UnknownFlow UnresolvedSession TargetUnavailable EmptyText PolicyHold ]
+  RelayIdentifier.String
+  EventIdentifier.String
+  ReceiptGrade.[ IngressAccepted TransportAccepted TargetPresented ]
+  OperationFailure.{ RequestIdentifier Unavailability }
+  Unavailability.[ PersonaUnavailable CorrelationUnresolved SourceUnreadable TransportUnavailable ]
   InterfaceInterest.[ PendingQuestions Notifications StatusOnly FullInterfaceState ]
   InterfaceUpdate.{ UpdateIdentifier InterfaceMutation }
   AnswerProposalAdmitted.{ ProposalIdentifier QuestionIdentifier ProposalDigest RevisionCounter }

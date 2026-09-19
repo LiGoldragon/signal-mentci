@@ -13,7 +13,10 @@ use signal_mentci::{
     InterfaceProjection, InterfaceState, InterfaceStateObservation, InterfaceUpdate,
     NotificationSlice, PaneContent, ProjectedInterfaceState, Query, QuestionContext,
     QuestionPresented, QuestionProposal, Rejection, RejectionReason, Response, Restorable, Signal,
-    Signalizable, UpdateAccepted, VerdictAccepted,
+    Signalizable, UpdateAccepted, VerdictAccepted, RosterObservation, ConversationObservation,
+    PsycheSubmission, RosterSnapshot, FlowSnapshot, FlowState, ActivitySource, SourceStatus,
+    ConversationSnapshot, ConversationEntry, SourceKind, Provenance, SubmissionReceipt,
+    SubmissionDisposition, ReceiptGrade, OperationFailure, Unavailability,
 };
 
 fn question_proposal() -> QuestionProposal {
@@ -98,6 +101,18 @@ fn canonical_queries() -> Vec<Query> {
             parked_request_identifier: String::from("parked-1"),
             parked_request_decision: ParkedRequestDecision::Approve,
         }),
+        Query::ObserveRoster(RosterObservation {
+            request_identifier: String::from("request-roster-1"),
+        }),
+        Query::ObserveConversation(ConversationObservation {
+            request_identifier: String::from("request-conversation-1"),
+            flow_identifier: String::from("flow-1"),
+        }),
+        Query::SubmitPsyche(PsycheSubmission {
+            request_identifier: String::from("request-send-1"),
+            flow_identifier: String::from("flow-1"),
+            psyche_text: String::from("  preserve this text exactly  "),
+        }),
     ]
 }
 
@@ -148,6 +163,57 @@ fn canonical_responses() -> Vec<Response> {
         }),
         Response::InterceptPolicyCreated(policy()),
         Response::InterceptPolicyCancelled(String::from("policy-1")),
+        Response::RosterObserved(RosterSnapshot {
+            request_identifier: String::from("request-roster-1"),
+            timestamp_nanos: 1_700_000_000_000_000_002,
+            source_status: SourceStatus::Observed,
+            flows: vec![FlowSnapshot {
+                flow_identifier: String::from("flow-1"),
+                flow_name: String::from("Fixture Flow"),
+                seat_label: String::from("fixture"),
+                flow_state: FlowState::Idle,
+                timestamp_nanos_option: Some(1_700_000_000_000_000_001),
+                activity_source: ActivitySource::Herdr,
+            }],
+        }),
+        Response::ConversationObserved(ConversationSnapshot {
+            request_identifier: String::from("request-conversation-1"),
+            flow_identifier: String::from("flow-1"),
+            timestamp_nanos: 1_700_000_000_000_000_002,
+            source_status: SourceStatus::Partial,
+            entries: vec![ConversationEntry {
+                entry_identifier: String::from("synthetic:flow-1:1"),
+                sequence: 1,
+                source_ordinal: 1,
+                timestamp_nanos: 1_700_000_000_000_000_000,
+                entry_text: String::from("Origin is unresolved."),
+                source_kind: SourceKind::UserInput,
+                provenance: Provenance::Unknown,
+                attributed_actor_option: None,
+            }, ConversationEntry {
+                entry_identifier: String::from("synthetic:flow-1:2"),
+                sequence: 2,
+                source_ordinal: 2,
+                timestamp_nanos: 1_700_000_000_000_000_001,
+                entry_text: String::from("A final machine response."),
+                source_kind: SourceKind::FinalResponse,
+                provenance: Provenance::Machine,
+                attributed_actor_option: Some(String::from("Fixture Flow")),
+            }],
+        }),
+        Response::PsycheSubmitted(SubmissionReceipt {
+            request_identifier: String::from("request-send-1"),
+            submission_disposition: SubmissionDisposition::Accepted,
+            submission_reason_option: None,
+            relay_identifier_option: Some(String::from("relay-1")),
+            event_identifier_option: Some(String::from("event-1")),
+            timestamp_nanos: 1_700_000_000_000_000_003,
+            receipt_grade: ReceiptGrade::IngressAccepted,
+        }),
+        Response::OperationUnavailable(OperationFailure {
+            request_identifier: String::from("request-conversation-2"),
+            unavailability: Unavailability::PersonaUnavailable,
+        }),
     ]
 }
 
