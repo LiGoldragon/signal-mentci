@@ -24,7 +24,28 @@ pub struct RosterObservation {
 pub struct ConversationObservation {
     pub request_identifier: RequestIdentifier,
     pub flow_identifier: FlowIdentifier,
+    pub conversation_cursor_option: Option<ConversationCursor>,
 }
+#[rustfmt::skip]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
+pub struct ConversationCursor {
+    pub native_session_identifier: NativeSessionIdentifier,
+    pub file_device: FileDevice,
+    pub file_inode: FileInode,
+    pub snapshot_bytes: SnapshotBytes,
+    pub before_byte: BeforeByte,
+}
+#[rustfmt::skip]
+pub type NativeSessionIdentifier = String;
+#[rustfmt::skip]
+pub type FileDevice = i64;
+#[rustfmt::skip]
+pub type FileInode = i64;
+#[rustfmt::skip]
+pub type SnapshotBytes = i64;
+#[rustfmt::skip]
+pub type BeforeByte = i64;
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
@@ -50,12 +71,27 @@ pub type Flows = std::vec::Vec<FlowSnapshot>;
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub struct FlowSnapshot {
-    pub flow_identifier: FlowIdentifier,
+    pub flow_identifier_option: Option<FlowIdentifier>,
     pub flow_name: FlowName,
     pub seat_label: SeatLabel,
     pub flow_state: FlowState,
     pub timestamp_nanos_option: Option<TimestampNanos>,
     pub activity_source: ActivitySource,
+    pub pane_identifier: PaneIdentifier,
+    pub terminal_identifier: TerminalIdentifier,
+    pub correlation_status: CorrelationStatus,
+}
+#[rustfmt::skip]
+pub type PaneIdentifier = String;
+#[rustfmt::skip]
+pub type TerminalIdentifier = String;
+#[rustfmt::skip]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
+pub enum CorrelationStatus {
+    Verified,
+    Unknown,
+    Unavailable,
 }
 #[rustfmt::skip]
 pub type FlowName = String;
@@ -83,7 +119,7 @@ pub enum ActivitySource {
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub enum SourceStatus {
-    Observed,
+    Complete,
     Partial,
     Unavailable,
 }
@@ -95,8 +131,19 @@ pub struct ConversationSnapshot {
     pub flow_identifier: FlowIdentifier,
     pub timestamp_nanos: TimestampNanos,
     pub source_status: SourceStatus,
+    pub snapshot_bytes: SnapshotBytes,
+    pub current_bytes: CurrentBytes,
+    pub window_start: WindowStart,
+    pub window_end: WindowEnd,
+    pub conversation_cursor_option: Option<ConversationCursor>,
     pub entries: Entries,
 }
+#[rustfmt::skip]
+pub type CurrentBytes = i64;
+#[rustfmt::skip]
+pub type WindowStart = i64;
+#[rustfmt::skip]
+pub type WindowEnd = i64;
 #[rustfmt::skip]
 pub type Entries = std::vec::Vec<ConversationEntry>;
 #[rustfmt::skip]
@@ -194,6 +241,8 @@ pub enum Unavailability {
     CorrelationUnresolved,
     SourceUnreadable,
     TransportUnavailable,
+    SnapshotChanged,
+    ResourceLimit,
 }
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]

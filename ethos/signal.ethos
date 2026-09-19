@@ -44,18 +44,30 @@ Signal
   RequestIdentifier.String
   FlowIdentifier.String
   RosterObservation.{ RequestIdentifier }
-  ConversationObservation.{ RequestIdentifier FlowIdentifier }
+  ConversationObservation.{ RequestIdentifier FlowIdentifier Option<ConversationCursor> }
+  ConversationCursor.{ NativeSessionIdentifier FileDevice FileInode SnapshotBytes BeforeByte }
+  NativeSessionIdentifier.String
+  FileDevice.Integer
+  FileInode.Integer
+  SnapshotBytes.Integer
+  BeforeByte.Integer
   PsycheSubmission.{ RequestIdentifier FlowIdentifier PsycheText }
   PsycheText.String
   RosterSnapshot.{ RequestIdentifier TimestampNanos SourceStatus Flows }
   Flows.Vector<FlowSnapshot>
-  FlowSnapshot.{ FlowIdentifier FlowName SeatLabel FlowState Option<TimestampNanos> ActivitySource }
+  FlowSnapshot.{ Option<FlowIdentifier> FlowName SeatLabel FlowState Option<TimestampNanos> ActivitySource PaneIdentifier TerminalIdentifier CorrelationStatus }
+  PaneIdentifier.String
+  TerminalIdentifier.String
+  CorrelationStatus.[ Verified Unknown Unavailable ]
   FlowName.String
   SeatLabel.String
   FlowState.[ Working Idle Blocked Stopped Unknown ]
   ActivitySource.[ Herdr Transcript Unknown ]
-  SourceStatus.[ Observed Partial Unavailable ]
-  ConversationSnapshot.{ RequestIdentifier FlowIdentifier TimestampNanos SourceStatus Entries }
+  SourceStatus.[ Complete Partial Unavailable ]
+  ConversationSnapshot.{ RequestIdentifier FlowIdentifier TimestampNanos SourceStatus SnapshotBytes CurrentBytes WindowStart WindowEnd Option<ConversationCursor> Entries }
+  CurrentBytes.Integer
+  WindowStart.Integer
+  WindowEnd.Integer
   Entries.Vector<ConversationEntry>
   ConversationEntry.{ EntryIdentifier Sequence SourceOrdinal TimestampNanos EntryText SourceKind Provenance Option<AttributedActor> }
   EntryIdentifier.String
@@ -72,7 +84,7 @@ Signal
   EventIdentifier.String
   ReceiptGrade.[ IngressAccepted TransportAccepted TargetPresented ]
   OperationFailure.{ RequestIdentifier Unavailability }
-  Unavailability.[ PersonaUnavailable CorrelationUnresolved SourceUnreadable TransportUnavailable ]
+  Unavailability.[ PersonaUnavailable CorrelationUnresolved SourceUnreadable TransportUnavailable SnapshotChanged ResourceLimit ]
   InterfaceInterest.[ PendingQuestions Notifications StatusOnly FullInterfaceState ]
   InterfaceUpdate.{ UpdateIdentifier InterfaceMutation }
   AnswerProposalAdmitted.{ ProposalIdentifier QuestionIdentifier ProposalDigest RevisionCounter }

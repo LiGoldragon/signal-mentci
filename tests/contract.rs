@@ -17,6 +17,7 @@ use signal_mentci::{
     PsycheSubmission, RosterSnapshot, FlowSnapshot, FlowState, ActivitySource, SourceStatus,
     ConversationSnapshot, ConversationEntry, SourceKind, Provenance, SubmissionReceipt,
     SubmissionDisposition, ReceiptGrade, OperationFailure, Unavailability,
+    ConversationCursor, CorrelationStatus,
 };
 
 fn question_proposal() -> QuestionProposal {
@@ -107,6 +108,15 @@ fn canonical_queries() -> Vec<Query> {
         Query::ObserveConversation(ConversationObservation {
             request_identifier: String::from("request-conversation-1"),
             flow_identifier: String::from("flow-1"),
+            conversation_cursor_option: None,
+        }),
+        Query::ObserveConversation(ConversationObservation {
+            request_identifier: String::from("request-conversation-older"),
+            flow_identifier: String::from("flow-1"),
+            conversation_cursor_option: Some(ConversationCursor {
+                native_session_identifier: String::from("11111111-2222-3333-4444-555555555555"),
+                file_device: 1, file_inode: 2, snapshot_bytes: 900, before_byte: 450,
+            }),
         }),
         Query::SubmitPsyche(PsycheSubmission {
             request_identifier: String::from("request-send-1"),
@@ -166,14 +176,27 @@ fn canonical_responses() -> Vec<Response> {
         Response::RosterObserved(RosterSnapshot {
             request_identifier: String::from("request-roster-1"),
             timestamp_nanos: 1_700_000_000_000_000_002,
-            source_status: SourceStatus::Observed,
+            source_status: SourceStatus::Complete,
             flows: vec![FlowSnapshot {
-                flow_identifier: String::from("flow-1"),
+                flow_identifier_option: Some(String::from("flow-1")),
                 flow_name: String::from("Fixture Flow"),
                 seat_label: String::from("fixture"),
                 flow_state: FlowState::Idle,
                 timestamp_nanos_option: Some(1_700_000_000_000_000_001),
                 activity_source: ActivitySource::Herdr,
+                pane_identifier: String::from("pane-1"),
+                terminal_identifier: String::from("terminal-1"),
+                correlation_status: CorrelationStatus::Verified,
+            }, FlowSnapshot {
+                flow_identifier_option: None,
+                flow_name: String::from("Uncorrelated fixture"),
+                seat_label: String::from("fixture"),
+                flow_state: FlowState::Unknown,
+                timestamp_nanos_option: None,
+                activity_source: ActivitySource::Herdr,
+                pane_identifier: String::from("pane-2"),
+                terminal_identifier: String::from("terminal-2"),
+                correlation_status: CorrelationStatus::Unknown,
             }],
         }),
         Response::ConversationObserved(ConversationSnapshot {
@@ -181,6 +204,14 @@ fn canonical_responses() -> Vec<Response> {
             flow_identifier: String::from("flow-1"),
             timestamp_nanos: 1_700_000_000_000_000_002,
             source_status: SourceStatus::Partial,
+            snapshot_bytes: 900,
+            current_bytes: 950,
+            window_start: 450,
+            window_end: 900,
+            conversation_cursor_option: Some(ConversationCursor {
+                native_session_identifier: String::from("11111111-2222-3333-4444-555555555555"),
+                file_device: 1, file_inode: 2, snapshot_bytes: 900, before_byte: 450,
+            }),
             entries: vec![ConversationEntry {
                 entry_identifier: String::from("synthetic:flow-1:1"),
                 sequence: 1,
