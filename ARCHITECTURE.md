@@ -50,11 +50,10 @@ field.
 
 ## The producer cut this contract is generated against
 
-`ethos-zero` 9.0.0 `b232d35e`, whose projection derives
-`datom_codec::Composing` from the split composing kind that `datom-codec`
-0.27.0 `6dccc76b` reintroduced arity into; `signal` 5.0.0 `7bcb0949`,
-generated against the same pair; `protos` 0.30.1 `171b21f6`; and
-`signal-criome` 2.0.0 `5bfa61b5`, generated against all four.
+Ethos Zero 19.2.0 (5a5daca), whose projection derives the Datom kinds;
+Datom 0.33.0 (eabead4); Signal 10.3.0 (7afb68b);
+Protos 0.33.0 (3c7ade3); and signal-criome 2.1.0 (e30cada),
+generated against the same cohort.
 
 These move together and are spelled identically everywhere, without a `.git`
 suffix: cargo source identity is the pin string, not the commit, so one commit

@@ -12,6 +12,10 @@ CreateInterceptPolicy.{ session-1 { spirit-1 } [ Deploy ] 60000000000 AutoReject
 CancelInterceptPolicy.{ policy-1 }
 FetchParkedRequests.{ Some.session-1 None }
 AnswerParkedRequest.{ parked-1 Approve }
+ObserveRoster.{ request-roster-1 }
+ObserveConversation.{ request-conversation-1 flow-1 None }
+ObserveConversation.{ request-conversation-older flow-1 Some.{ 11111111-2222-3333-4444-555555555555 1 2 900 450 } }
+SubmitPsyche.{ request-send-1 flow-1 «  preserve this text exactly  » }
 RequestRejected.{ QuestionAlreadyAnswered }
 UpdateApplied.{ update-1 12 }
 QuestionAccepted.{ question-1 13 1700000000000000000 }
@@ -21,3 +25,7 @@ InterfaceObservationStarted.{ token-1 { 15 FullProjection.{ 15 idle «one questi
 InterfaceObservationClosed.{ token-1 }
 InterceptPolicyCreated.{ policy-1 session-1 { spirit-1 } [ Deploy Retire ] { 1700000000000000000 1700000060000000000 } LeaveParked 3 }
 InterceptPolicyCancelled.policy-1
+RosterObserved.{ request-roster-1 1700000000000000002 Complete [ { Some.flow-1 «Fixture Flow» fixture Idle Some.1700000000000000001 Herdr pane-1 terminal-1 Verified } { None «Uncorrelated fixture» fixture Unknown None Herdr pane-2 terminal-2 Unknown } ] }
+ConversationObserved.{ request-conversation-1 flow-1 1700000000000000002 Partial 900 950 450 900 Some.{ 11111111-2222-3333-4444-555555555555 1 2 900 450 } [ { synthetic:flow-1:1 1 1 1700000000000000000 «Origin is unresolved.» UserInput Unknown None } { synthetic:flow-1:2 2 2 1700000000000000001 «A final machine response.» FinalResponse Machine Some.«Fixture Flow» } ] }
+PsycheSubmitted.{ request-send-1 Accepted None Some.relay-1 Some.event-1 1700000000000000003 IngressAccepted }
+OperationUnavailable.{ request-conversation-2 PersonaUnavailable }
